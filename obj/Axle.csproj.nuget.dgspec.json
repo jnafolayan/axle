@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/jnafolayan/projects/school/csharp/Axle/Axle.csproj": {}
+    "/home/madab/Documents/projects/axle/Axle.csproj": {}
   },
   "projects": {
-    "/home/jnafolayan/projects/school/csharp/Axle/Axle.csproj": {
+    "/home/madab/Documents/projects/axle/Axle.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/jnafolayan/projects/school/csharp/Axle/Axle.csproj",
+        "projectUniqueName": "/home/madab/Documents/projects/axle/Axle.csproj",
         "projectName": "Axle",
-        "projectPath": "/home/jnafolayan/projects/school/csharp/Axle/Axle.csproj",
-        "packagesPath": "/home/jnafolayan/.nuget/packages/",
-        "outputPath": "/home/jnafolayan/projects/school/csharp/Axle/obj/",
+        "projectPath": "/home/madab/Documents/projects/axle/Axle.csproj",
+        "packagesPath": "/home/madab/.nuget/packages/",
+        "outputPath": "/home/madab/Documents/projects/axle/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/jnafolayan/.nuget/NuGet/NuGet.Config"
+          "/home/madab/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"
@@ -53,7 +53,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/home/jnafolayan/dotnet/sdk/3.1.410/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/3.1.411/RuntimeIdentifierGraph.json"
         }
       }
     }
