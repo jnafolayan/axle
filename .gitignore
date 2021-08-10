@@ -1,2 +1,4 @@
-obj
-bin
+bin/
+obj/
+Debug/
+Release/
