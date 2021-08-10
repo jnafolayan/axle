@@ -16,15 +16,5 @@ namespace Axle.Engine.FileParsers
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>
-        /// Parses a remote file into text
-        /// </summary>
-        /// <param name="fileURL">The url to the file</param>
-        /// <returns>The text contained in the file</returns>        
-        public virtual string ParseRemoteFile(string fileURL)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
