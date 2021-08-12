@@ -5,9 +5,9 @@ namespace Axle.Engine.FileParsers.Exceptions
     /// <summary>
     /// Thrown when the file was not found
     /// </summary>
-    public class FileNotFoundException : Exception
+    public class TextExtractionNotSupportedException : Exception
     {
-        public FileNotFoundException(string uri) : base($"File not found: {uri}")
+        public TextExtractionNotSupportedException(string uri) : base($"Text extraction not supported: {uri}")
         {}
     }
 }
