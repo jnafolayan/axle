@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
+using Axle.Engine.FileParsers.Exceptions;
 using GroupDocs.Parser;
 
 namespace Axle.Engine.FileParsers
@@ -17,7 +20,23 @@ namespace Axle.Engine.FileParsers
         /// <returns>The text contained in the file</returns>
         public override string ParseLocalFile(string filePath)
         {
-            return "";
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File not found: {filePath}");
+            }
+
+            using (Parser parser = new Parser(filePath))
+            {
+                if (!parser.Features.Text)
+                {
+                    throw new TextExtractionNotSupportedException(filePath);
+                }
+
+                using (StreamReader reader = File.OpenText(filePath))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
         }
     }
 }
