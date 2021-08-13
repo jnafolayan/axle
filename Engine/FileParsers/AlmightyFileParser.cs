@@ -6,6 +6,7 @@ using GroupDocs.Parser;
 
 namespace Axle.Engine.FileParsers
 {
+    
     /// <summary>
     /// This file parser can parse any kind of file supported by 
     /// GroupDocs.Parser. It is used as a fallback parser for 

@@ -5,7 +5,7 @@ using Axle.Engine.FileParsers;
 
 namespace Axle.UnitTests.FileParsers
 {
-    public class FileParsersTest
+    public class FileParsersTests
     {
         private string GetResourcePath(string fileName)
         {
@@ -27,6 +27,19 @@ namespace Axle.UnitTests.FileParsers
             var almighty = new AlmightyFileParser();
             var textContent = almighty.ParseLocalFile(GetResourcePath("file.txt"));
             Assert.NotEmpty(textContent);
+        }
+    }
+
+    public class FileParserFactoryTests
+    {
+        [Fact]
+        public void ShouldRegisterFileParsers()
+        {
+            var ext = "txt";
+            var fpFactory = new FileParserFactory();
+            fpFactory.RegisterParser(ext, new AlmightyFileParser());
+            
+            Assert.IsType<AlmightyFileParser>(fpFactory.GetParser(ext));
         }
     }
 }
