@@ -53,6 +53,7 @@ namespace Axle.Engine.FileParsers
                 }
             }
 
+            document.Close();
             return content.ToString();
         }
     }
