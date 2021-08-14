@@ -13,6 +13,16 @@ namespace Axle.UnitTests.FileParsers
             string parent = Path.Combine(cwd.Parent.Parent.FullName, "Tests/resources");
             return Path.Combine(parent, fileName);
         }
+
+        [Fact]
+        public void ShouldParseXLSXFile()
+        {
+            var filePath = GetResourcePath("file.xlsx");
+            var xlsxParser = new SpreadsheetsParser();
+            var contents = xlsxParser.ParseLocalFile(filePath);
+            
+            Assert.NotEmpty(contents);
+        }
     }
 
     public class FileParserFactoryTests
