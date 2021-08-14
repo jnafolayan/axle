@@ -23,6 +23,27 @@ namespace Axle.UnitTests.FileParsers
             
             Assert.NotEmpty(contents);
         }
+
+        [Fact]
+        public void ShouldParseHTMLFile()
+        {
+            var filePath = GetResourcePath("file.html");
+            var htmlParser = new HTMLParser();
+            var contents = htmlParser.ParseLocalFile(filePath);
+            
+            Assert.NotEmpty(contents);
+        }
+
+        [Fact]
+        public void ShouldExtractHTMLPageInfo()
+        {
+            var filePath = GetResourcePath("file.html");
+            var htmlParser = new HTMLParser();
+            var pageInfo = htmlParser.ExtractHTMLFileInfo(filePath);
+             
+            Assert.Equal("Test File", pageInfo.Title);
+            Assert.Empty(pageInfo.Description);
+        }
     }
 
     public class FileParserFactoryTests
