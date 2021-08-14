@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using DocumentFormat.OpenXml.Packaging;
 
@@ -8,7 +9,7 @@ namespace Axle.Engine.FileParsers
     /// </summary>
     public class WordDocumentParser : FileParserBase
     {
-         /// <summary>
+        /// <summary>
         /// Parses a .docx file into text
         /// </summary>
         /// <param name="filePath">The path to the file</param>
