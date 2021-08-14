@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
@@ -13,7 +12,7 @@ namespace Axle.Engine.FileParsers
     public class SpreadsheetsParser : FileParserBase
     {
         /// <summary>
-        /// Parses a local file into text
+        /// Parses a spreadsheet into text
         /// </summary>
         /// <param name="filepath">The path to the file</param>
         /// <returns>The text contained in the file</returns>
