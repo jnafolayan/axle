@@ -14,7 +14,7 @@ namespace Axle.Engine.FileParsers
         /// <summary>
         /// Parses a spreadsheet into text
         /// </summary>
-        /// <param name="filepath">The path to the file</param>
+        /// <param name="filePath">The path to the file</param>
         /// <returns>The text contained in the file</returns>
         public override string ParseLocalFile(string filePath)
         {
@@ -53,6 +53,7 @@ namespace Axle.Engine.FileParsers
                 }
             }
 
+            document.Close();
             return content.ToString();
         }
     }
