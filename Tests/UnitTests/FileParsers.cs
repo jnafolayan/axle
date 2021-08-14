@@ -51,12 +51,12 @@ namespace Axle.UnitTests.FileParsers
         [Fact]
         public void ShouldRegisterFileParsers()
         {
-            // TODO:
-            // var ext = "txt";
-            // var fpFactory = new FileParserFactory();
-            // fpFactory.RegisterParser(ext, new FileParserBase());
+            var fpFactory = new FileParserFactory();
+            fpFactory.RegisterParser("html", new HTMLParser());
+            fpFactory.RegisterParser("xlsx", new SpreadsheetsParser());
             
-            // Assert.IsType<AlmightyFileParser>(fpFactory.GetParser(ext));
+            Assert.IsType<HTMLParser>(fpFactory.GetParser("html"));
+            Assert.IsType<SpreadsheetsParser>(fpFactory.GetParser("xlsx"));
         }
     }
 }
