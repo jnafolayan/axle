@@ -4,11 +4,11 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GroupDocs.Parser" Version="21.5.0"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0-release-20210626-04"/>
     <PackageReference Include="xunit" Version="2.4.1"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta.1.build3958"/>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.0"/>
     <PackageReference Include="itext7" Version="7.1.16"/>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.36"/>
   </ItemGroup>
 </Project>
