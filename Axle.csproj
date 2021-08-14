@@ -9,5 +9,6 @@
     <PackageReference Include="xunit" Version="2.4.1"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta.1.build3958"/>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.0"/>
+    <PackageReference Include="itext7" Version="7.1.16"/>
   </ItemGroup>
 </Project>
