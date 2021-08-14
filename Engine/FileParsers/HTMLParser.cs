@@ -62,7 +62,7 @@ namespace Axle.Engine.FileParsers
             document.LoadHtml(html);
 
             HtmlNode titleNode = document.DocumentNode.SelectSingleNode("//head/title");
-            HtmlNode descNode = document.DocumentNode.SelectSingleNode("//head/meta[name='description']");
+            HtmlNode descNode = document.DocumentNode.SelectSingleNode("//head/meta[@name=\"description\"]");
             HtmlNode bodyNode = document.DocumentNode.SelectSingleNode("//body");
 
             string title = titleNode != null ? titleNode.InnerText : "";
