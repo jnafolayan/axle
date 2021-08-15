@@ -19,7 +19,7 @@ namespace Axle.Engine.FileParsers
                 throw new FileNotFoundException($"File not found: {filePath}");
             }
 
-            string text = System.IO.File.ReadAllText(filePath);
+            string text = File.ReadAllText(filePath);
             return text;
         }
     }
