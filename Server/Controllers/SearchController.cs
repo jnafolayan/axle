@@ -5,11 +5,6 @@ using Axle.Engine;
 
 namespace Axle.Server.Controllers
 {
-    public class SearchQuery
-    {
-        public string Query { get; set; }
-    }
-
     [ApiController]
     [Route("[controller]")]
     public class SearchController : ControllerBase 
