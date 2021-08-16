@@ -9,8 +9,8 @@ namespace Axle.Server.Controllers
     public class SearchController : ControllerBase 
     {
 
-        [HttpGet(SearchResultItem.baseRoute)]
-        public IEnumerable<SearchResultItem> Get()
+        [HttpPost]
+        public ActionResult<IEnumerable<SearchResultItem>> Search(SearchQuery searchQuery)
         {
             return new List<SearchResultItem>{
                 new SearchResultItem{
@@ -25,5 +25,10 @@ namespace Axle.Server.Controllers
                 }
             };
         }
+    }
+
+    public class SearchQuery
+    {
+        public string Query { get; }
     }
 }
