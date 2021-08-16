@@ -12,6 +12,9 @@ namespace Axle.Server.Controllers
         [HttpPost]
         public ActionResult<IEnumerable<SearchResultItem>> Search(SearchQuery searchQuery)
         {
+            // To access the user query use : searchQuery.Query
+            // Query should be passed into engine search function
+            // Engine should return a List of SearchResultItem
             return new List<SearchResultItem>{
                 new SearchResultItem{
                     Title = "Result 1",
