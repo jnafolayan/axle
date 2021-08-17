@@ -36,6 +36,19 @@ namespace Axle.FunctionalTests.Indexing
         }
 
         [Fact]
+        public void ShouldStemWords()
+        {
+            Indexer indexer = new Indexer(new FileParserFactory(), GetResourcePath("../../Engine/resources/stopwords.txt"));
+
+            var result1 = indexer.StemWords(new List<string> { "friendly" });
+            var result2 = indexer.StemWords(new List<string> { "fishing" });
+            var result3 = indexer.StemWords(new List<string> { "rolling" });
+            Assert.Equal("friend", result1[0]);
+            Assert.Equal("fish", result2[0]);
+            Assert.Equal("roll", result3[0]);
+        }
+
+        [Fact]
         public void ShouldCountWordFreqs()
         {
             Indexer indexer = new Indexer();

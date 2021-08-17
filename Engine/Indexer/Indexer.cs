@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System;
 using System.Threading.Tasks;
 using Axle.Engine.FileParsers;
+using Porter2Stemmer;
 
 namespace Axle.Engine.Indexer
 {
@@ -14,6 +15,7 @@ namespace Axle.Engine.Indexer
     public class Indexer
     {
         private HashSet<string> stopWords = new HashSet<string>();
+        private EnglishPorter2Stemmer stemmer = new EnglishPorter2Stemmer();
         private FileParserFactory parserFactory_;
 
         public Indexer()
@@ -140,6 +142,8 @@ namespace Axle.Engine.Indexer
             terms = RemoveStopWords(terms);
             // ignore empty strings
             terms = RemoveEmptyStrings(terms);
+            // stem words
+            terms = StemWords(terms);
 
             foreach (string term in terms)
             {
@@ -173,6 +177,16 @@ namespace Axle.Engine.Indexer
             }
 
             return tokens;
+        }
+
+        /// <summary>
+        /// Stems words
+        /// </summary>
+        /// <param name="words">A list of words</param>
+        /// <returns>A list of resulting words</returns>
+        public List<string> StemWords(List<string> words)
+        {
+            return words.ConvertAll<string>((string word) => stemmer.Stem(word).Value);
         }
 
         /// <summary>
