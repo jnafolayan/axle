@@ -3,6 +3,7 @@ using System.IO;
 using Xunit;
 using Axle.Engine.Indexer;
 using Axle.Engine.FileParsers;
+using System.Collections.Generic;
 
 namespace Axle.FunctionalTests.Indexing
 
@@ -23,6 +24,15 @@ namespace Axle.FunctionalTests.Indexing
             string text = "hello, world! hi; hee.";
             string result = indexer.RemovePunctuation(text);
             Assert.Equal("hello world hi hee", result);
+        }
+
+        [Fact]
+        public void ShouldRemoveStopWords()
+        {
+            Indexer indexer = new Indexer(new FileParserFactory(), GetResourcePath("../../Engine/resources/stopwords.txt"));
+            string text = "i want to eat";
+            List<string> result = indexer.RemoveStopWords(new List<string>(text.Split(" ")));
+            Assert.Equal("eat", String.Join(" ", result));
         }
 
         [Fact]
@@ -66,7 +76,7 @@ namespace Axle.FunctionalTests.Indexing
                 GetResourcePath("file.html"),
                 GetResourcePath("file.xlsx")
             };
-            
+
             var index = indexer.BuildIndex(documents);
             Assert.NotEmpty(index);
             Assert.NotEmpty(index[0].Value);
