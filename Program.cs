@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Axle.Server.Database;
+using Axle.Server.Database.Models.Index;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -15,7 +16,12 @@ namespace Axle
         public static void Main(string[] args)
         {
             //CreateHostBuilder(args).Build().Run();
-            MongoCRUD db = new MongoCRUD("Document");
+
+
+            // Create MongoDB instance and database to store Index 
+            MongoCRUD db = new MongoCRUD("Index");
+
+            //db.InsertRecord("Document");
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
