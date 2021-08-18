@@ -18,5 +18,6 @@ namespace Axle.Server.Controllers
     public class UploadResponse
     {
         public string Status { get; set; }
+        public string Message { get; set; }
     }
 }

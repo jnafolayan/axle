@@ -1,11 +1,16 @@
+using System;
+using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
-using System;
-using System.IO;
 
 namespace Axle.Server.Controllers
 {
+    /// <summary>
+    /// Controller for resource upload
+    /// </summary>
+
     [ApiController]
     [Route("[controller]")]
     public class UploadController : ControllerBase
@@ -25,76 +30,84 @@ namespace Axle.Server.Controllers
         };
 
         [HttpPost]
-        public ActionResult<UploadResponse> Upload([FromForm] UploadInput uploadInput)
+        public async Task<ActionResult<UploadResponse>> Upload([FromForm] UploadInput uploadInput)
         {
             // Make sure type is valid
             if (uploadInput.Type is null)
-                return new UploadResponse{
-                    Status = "INVALID_TYPE"
-                };
+                return BadRequest(createResponse("MISSING_TYPE", "No upload type found"));
 
             string uploadType = uploadInput.Type.ToLower();
             if (Array.IndexOf(validTypes, uploadType) == -1)
-                return new UploadResponse{
-                    Status = "INVALID_TYPE"
-                };
+                return BadRequest(createResponse("INVALID_TYPE", "Type should be one of: document, url or sitemap"));
 
             // Make sure type requirements are met
             UploadResponse validationResponse = ValidateUploadInput(uploadType, uploadInput);
             if (validationResponse != null)
-                return validationResponse;
+                return BadRequest(validationResponse);
 
-            // Save the document
+            // TODO: If type is web url, download the associated file content
+            
+            // Save the document if one exists and get the details
+            // documentDetails[0] = path
+            // documentDetails[1] = extension (currently based on the file name)
+            string[] documentDetails;
             if (IsValidDocument(uploadInput.Document))
-                saveDocumentToDisk(uploadInput.Document);
+                documentDetails = await saveDocumentToDisk(uploadInput.Document);
 
-            // If type is document, store document in physical location
-            // Figure out common output interface and expose it for db
-            return new UploadResponse{
-                Status = "success"
-            };
-        }
-        private bool IsValidLink (string link)
-        {
-            return true;
-        }
-        private bool IsValidDocument (IFormFile file)
-        {
-            return true;
+            return Ok(createResponse("SUCCESS", "Resource uploaded successfully"));
         }
         private UploadResponse ValidateUploadInput(string uploadType, UploadInput uploadInput)
         {
             if (uploadType == "document")
-                if (uploadInput.Document is null)
-                    return new UploadResponse{
-                        Status = "DOCUMENT_TYPE_NEEDS_DOCUMENT"
-                    };
+                if (!IsValidDocument(uploadInput.Document))
+                    return createResponse("TYPE_REQUIRMENT_MISSING", "Upload type 'document' requires you to set the 'document' field");
 
             if (uploadType == "url")
-                if (IsValidLink(uploadInput.Link))
-                    return new UploadResponse{
-                        Status = "URL_TYPE_NEEDS_LINK"
-                    };
+                if (!IsValidLink(uploadInput.Link))
+                    return createResponse("TYPE_REQUIREMENT_MISSING", "Upload type 'url' requires you to set 'link' field");
             
             if (uploadType == "sitemap")
-                if (IsValidLink(uploadInput.Link) || IsValidDocument(uploadInput.Document))
-                    return new UploadResponse{
-                        Status = "SITEMAP_TYPE_NEEDS_VALID_DOCUMENT_OR_LINK"
-                    };
+                if (!IsValidLink(uploadInput.Link) || !IsValidDocument(uploadInput.Document))
+                    return createResponse("TYPE_REQUIREMENT_MISSING", "Upload type 'sitemap' requires you to set either 'document' or 'link' field");
 
             return null;
         }
-        private async void saveDocumentToDisk(IFormFile document)
+        private async Task<string[]> saveDocumentToDisk(IFormFile document)
         {
-            Console.WriteLine("env", _hostingEnvironment.WebRootPath);
             string uploadDir = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
+            string filePath = Path.Combine(uploadDir, document.FileName);
+
             if (document.Length > 0)
             {
-                string filePath = Path.Combine(uploadDir, document.FileName); // convert name to id
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create)) {
                     await document.CopyToAsync(fileStream);
                 }
             }
+
+            FileInfo fileInfo = new FileInfo(filePath); 
+            return new string[]{ filePath, fileInfo.Extension };
+        }
+
+        private UploadResponse createResponse(string status, string message)
+        {
+            return new UploadResponse
+            {
+                Status = status,
+                Message = message
+            };
+        }
+        private bool IsValidLink (string link)
+        {
+            if (link is null)
+                return false;
+            
+            Uri uri;
+            return Uri.TryCreate(link, UriKind.Absolute, out uri) &&
+                    ( uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps );
+        }
+        private bool IsValidDocument (IFormFile file)
+        {
+            return file != null;
         }
 
     }
