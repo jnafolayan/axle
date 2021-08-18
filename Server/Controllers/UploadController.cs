@@ -34,11 +34,17 @@ namespace Axle.Server.Controllers
         {
             // Make sure type is valid
             if (uploadInput.Type is null)
-                return BadRequest(createResponse("MISSING_TYPE", "No upload type found"));
+                return BadRequest(createResponse(
+                    "MISSING_TYPE", 
+                    "No upload type found"
+                ));
 
             string uploadType = uploadInput.Type.ToLower();
             if (Array.IndexOf(validTypes, uploadType) == -1)
-                return BadRequest(createResponse("INVALID_TYPE", "Type should be one of: document, url or sitemap"));
+                return BadRequest(createResponse(
+                    "INVALID_TYPE", 
+                    "Type should be one of: document, url or sitemap"
+                ));
 
             // Make sure type requirements are met
             UploadResponse validationResponse = ValidateUploadInput(uploadType, uploadInput);
@@ -54,21 +60,33 @@ namespace Axle.Server.Controllers
             if (IsValidDocument(uploadInput.Document))
                 documentDetails = await saveDocumentToDisk(uploadInput.Document);
 
-            return Ok(createResponse("SUCCESS", "Resource uploaded successfully"));
+            return Ok(createResponse(
+                "SUCCESS", 
+                "Resource uploaded successfully"
+            ));
         }
         private UploadResponse ValidateUploadInput(string uploadType, UploadInput uploadInput)
         {
             if (uploadType == "document")
                 if (!IsValidDocument(uploadInput.Document))
-                    return createResponse("TYPE_REQUIRMENT_MISSING", "Upload type 'document' requires you to set the 'document' field");
+                    return createResponse(
+                        "TYPE_REQUIRMENT_MISSING", 
+                        "Upload type 'document' requires you to set the 'document' field"
+                    );
 
             if (uploadType == "url")
                 if (!IsValidLink(uploadInput.Link))
-                    return createResponse("TYPE_REQUIREMENT_MISSING", "Upload type 'url' requires you to set 'link' field");
+                    return createResponse(
+                        "TYPE_REQUIREMENT_MISSING", 
+                        "Upload type 'url' requires you to set 'link' field"
+                    );
             
             if (uploadType == "sitemap")
                 if (!IsValidLink(uploadInput.Link) || !IsValidDocument(uploadInput.Document))
-                    return createResponse("TYPE_REQUIREMENT_MISSING", "Upload type 'sitemap' requires you to set either 'document' or 'link' field");
+                    return createResponse(
+                        "TYPE_REQUIREMENT_MISSING", 
+                        "Upload type 'sitemap' requires you to set either 'document' or 'link' field"
+                    );
 
             return null;
         }
