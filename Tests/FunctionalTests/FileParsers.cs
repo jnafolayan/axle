@@ -3,7 +3,7 @@ using System.IO;
 using Xunit;
 using Axle.Engine.FileParsers;
 
-namespace Axle.UnitTests.FileParsers
+namespace Axle.FunctionalTests.FileParsers
 {
     public class FileParsersTests
     {
