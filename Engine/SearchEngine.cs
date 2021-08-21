@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Axle.Engine.Database.Models.Index;
 using Axle.Engine.FileParsers;
-using static Axle.Engine.Indexer;
+using Microsoft.Extensions.Logging;
 
 namespace Axle.Engine
 {
@@ -13,14 +13,16 @@ namespace Axle.Engine
     /// </summary>
     public class SearchEngine
     {
-        private Indexer indexer;
-        private FileParserFactory parserFactory;
-        private Store store;
-        public SearchEngine(SearchEngineConfig config)
+        private ILogger<SearchEngine> _logger;
+        private Indexer _indexer;
+        private FileParserFactory _parserFactory;
+        private Store _store;
+        public SearchEngine(SearchEngineConfig config, ILogger<SearchEngine> logger)
         {
-            parserFactory = new FileParserFactory();
-            indexer = new Indexer(parserFactory, config.StopWordsFilePath);
-            store = new Store(config.DatabaseName, config.DatabaseConnectionURI);
+            _logger = logger;
+            _parserFactory = new FileParserFactory();
+            _indexer = new Indexer(_parserFactory, config.StopWordsFilePath);
+            _store = new Store(config.DatabaseName, config.DatabaseConnectionURI);
 
             ConfigureParserFactory();
         }
@@ -30,13 +32,13 @@ namespace Axle.Engine
         /// </summary>
         private void ConfigureParserFactory()
         {
-            parserFactory.RegisterParser("txt", new TxtFileParser());
-            parserFactory.RegisterParser("html", new HTMLParser());
-            parserFactory.RegisterParser("xml", new XMLFileParser());
-            parserFactory.RegisterParser("pdf", new PdfFileParser());
-            parserFactory.RegisterParser("xlsx", new SpreadsheetsParser());
-            parserFactory.RegisterParser("docx", new WordDocumentParser());
-            parserFactory.RegisterParser("pptx", new PptxFileParser());
+            _parserFactory.RegisterParser("txt", new TxtFileParser());
+            _parserFactory.RegisterParser("html", new HTMLParser());
+            _parserFactory.RegisterParser("xml", new XMLFileParser());
+            _parserFactory.RegisterParser("pdf", new PdfFileParser());
+            _parserFactory.RegisterParser("xlsx", new SpreadsheetsParser());
+            _parserFactory.RegisterParser("docx", new WordDocumentParser());
+            _parserFactory.RegisterParser("pptx", new PptxFileParser());
         }
 
         /// <summary>
@@ -49,20 +51,18 @@ namespace Axle.Engine
             var result = new List<SearchResultItem>();
 
             // strip query of unnecessary terms
-            List<string> terms = indexer.PreprocessText(query);
+            List<string> terms = _indexer.PreprocessText(query);
             if (terms.Count == 0) return result;
-
-            Console.WriteLine(String.Join(" ", terms));
 
             var tasks = new Task<TokenModel>[terms.Count];
             for (int i = 0; i < terms.Count; i++)
             {
-                tasks[i] = store.GetToken(terms[i]);
+                tasks[i] = _store.GetToken(terms[i]);
             }
 
             Task.WaitAll(tasks);
 
-            long totalDocuments = await store.CountIndexedDocuments();
+            long totalDocuments = await _store.CountIndexedDocuments();
 
             // accumulate scores for relevant documents
             var scores = new Dictionary<Guid, decimal>();
@@ -98,7 +98,7 @@ namespace Axle.Engine
             var documentsTasks = new Task<DocumentModel>[relevantDocuments.Count];
             for (int i = 0; i < relevantDocuments.Count; i++)
             {
-                documentsTasks[i] = store.GetDocument(relevantDocuments[i]);
+                documentsTasks[i] = _store.GetDocument(relevantDocuments[i]);
             }
 
             Task.WaitAll(documentsTasks);
@@ -124,7 +124,7 @@ namespace Axle.Engine
         /// <returns>A boolean</returns>
         public bool CanParseDocumentType(string type)
         {
-            return parserFactory.GetParser(type) != null;
+            return _parserFactory.GetParser(type) != null;
         }
 
         /// <summary>
@@ -135,13 +135,13 @@ namespace Axle.Engine
         {
             var watch = new Stopwatch();
 
-            List<DocumentModel> documents = store.GetAllRedDocuments();
+            List<DocumentModel> documents = _store.GetAllRedDocuments();
             var documentURLs = documents.ConvertAll<string>(doc => doc.SourcePath);
 
             watch.Start();
-            var index = indexer.BuildIndex(documentURLs);
+            var index = _indexer.BuildIndex(documentURLs);
             watch.Stop();
-            Console.WriteLine($"Took {watch.ElapsedMilliseconds}ms to build index having {documents.Count} documents.");
+            _logger.LogDebug($"Built new index in {watch.ElapsedMilliseconds}ms ({documents.Count} documents).");
 
             var sourcePathToId = new Dictionary<string, Guid>();
             for (int k = 0; k < documents.Count; k++)
@@ -157,18 +157,18 @@ namespace Axle.Engine
             foreach (var token in index)
             {
                 // TODO: handle error
-                tasks[i++] = store.UpsertTokenDocuments(token.Key, token.Value, sourcePathToId);
+                tasks[i++] = _store.UpsertTokenDocuments(token.Key, token.Value, sourcePathToId);
             }
             Task.WaitAll(tasks);
             watch.Stop();
-            Console.WriteLine($"Took {watch.ElapsedMilliseconds}ms to update the index.");
+            _logger.LogDebug($"Updated the index in {watch.ElapsedMilliseconds}ms.");
 
             i = 0;
             tasks = new Task[documents.Count];
             foreach (var document in documents)
             {
                 // TODO: handle error
-                tasks[i++] = store.SetDocumentAsIndexed(document);
+                tasks[i++] = _store.SetDocumentAsIndexed(document);
             }
             Task.WaitAll(tasks);
         }
@@ -182,7 +182,7 @@ namespace Axle.Engine
         /// <returns></returns>
         public async Task AddDocument(string filePath, string title = "", string description = "")
         {
-            await store.AddDocument(filePath, title, description);
+            await _store.AddDocument(filePath, title, description);
         }
     }
 

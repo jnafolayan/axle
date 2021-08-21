@@ -94,15 +94,6 @@ namespace Axle.FunctionalTests.Indexing
             Assert.NotEmpty(index);
             Assert.NotEmpty(index["lorem"]);
             Assert.NotEqual(0, index["lorem"][0].TFScore);
-            // foreach (var entry in index)
-            // {
-            //     var s = "";
-            //     entry.Value.ForEach((t) => {
-            //         if (s.Length > 0) s += ", ";
-            //         s += "( " + Path.GetFileName(t.SourcePath) + ", score: " + t.TFScore + " )"; 
-            //     });
-            //     Console.WriteLine("{0,25}: {1}", entry.Key, s);
-            // }
         }
     }
 }

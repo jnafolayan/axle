@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Axle.Engine;
+using Axle.Engine.Crons;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,15 +31,17 @@ namespace Axle
             services.Configure<SearchEngineConfig>(
         Configuration.GetSection(nameof(SearchEngineConfig)));
 
+            services.AddControllers();
+
             services.AddSingleton<SearchEngineConfig>(sp =>
             sp.GetRequiredService<IOptions<SearchEngineConfig>>().Value);
 
-            services.AddSingleton<SearchEngine>(sp => {
-                var config = sp.GetRequiredService<IOptions<SearchEngineConfig>>().Value;
-                return new SearchEngine(config);
-            });
+            services.AddSingleton<SearchEngine>();
 
-            services.AddControllers();
+            services.AddCronJob<IndexingCronJob>(config => {
+                config.TimeZoneInfo = TimeZoneInfo.Utc;
+                config.CronExpression = @"0 */1 * * *";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

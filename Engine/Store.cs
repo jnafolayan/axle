@@ -13,12 +13,12 @@ namespace Axle.Engine
     /// </summary>
     public class Store : MongoCRUD
     {
-        private IMongoCollection<DocumentModel> documents;
-        private IMongoCollection<TokenModel> invertedIndex;
+        private IMongoCollection<DocumentModel> _documents;
+        private IMongoCollection<TokenModel> _invertedIndex;
         public Store(string databaseName, string connectionURI) : base(databaseName, connectionURI)
         {
-            documents = db.GetCollection<DocumentModel>("documents");
-            invertedIndex = db.GetCollection<TokenModel>("invertedIndex");
+            _documents = db.GetCollection<DocumentModel>("documents");
+            _invertedIndex = db.GetCollection<TokenModel>("invertedIndex");
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Axle.Engine
             var filter = Builders<DocumentModel>.Filter.Eq("IsIndexed", false);
             var projection = Builders<DocumentModel>.Projection.Include("SourcePath");
 
-            var result = documents.Find(filter).Project<DocumentModel>(projection).ToList();
+            var result = _documents.Find(filter).Project<DocumentModel>(projection).ToList();
 
             return result;
         }
@@ -52,7 +52,7 @@ namespace Axle.Engine
                 IsIndexed = false,
             };
 
-            return documents.InsertOneAsync(doc);
+            return _documents.InsertOneAsync(doc);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Axle.Engine
                 .Set("IsIndexed", true)
                 .Set("DateIndexed", DateTime.UtcNow);
 
-            return documents.UpdateOneAsync(filter, update);
+            return _documents.UpdateOneAsync(filter, update);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Axle.Engine
             var filter = Builders<TokenModel>.Filter.Eq("Token", token);
             var update = Builders<TokenModel>.Update.PushEach("ContainingDocuments", modelInstances);
 
-            return invertedIndex.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
+            return _invertedIndex.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Axle.Engine
         public Task<TokenModel> GetToken(string tokenString)
         {
             var filter = Builders<TokenModel>.Filter.Eq("Token", tokenString);
-            var task = invertedIndex.Find(filter).FirstOrDefaultAsync();
+            var task = _invertedIndex.Find(filter).FirstOrDefaultAsync();
             return task;
         }
 
@@ -111,7 +111,7 @@ namespace Axle.Engine
         public Task<DocumentModel> GetDocument(Guid documentId)
         {
             var filter = Builders<DocumentModel>.Filter.Eq("Id", documentId);
-            var document = documents.Find(filter).FirstOrDefaultAsync();
+            var document = _documents.Find(filter).FirstOrDefaultAsync();
             return document;
         }
 
@@ -122,7 +122,7 @@ namespace Axle.Engine
         public Task<long> CountIndexedDocuments()
         {
             var filter = Builders<DocumentModel>.Filter.Eq("IsIndexed", true);
-            return documents.CountDocumentsAsync(filter);
+            return _documents.CountDocumentsAsync(filter);
         }
     }
 }

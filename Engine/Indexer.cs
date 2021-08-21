@@ -14,9 +14,9 @@ namespace Axle.Engine
     /// </summary>
     public class Indexer
     {
-        private HashSet<string> stopWords = new HashSet<string>();
-        private EnglishPorter2Stemmer stemmer = new EnglishPorter2Stemmer();
-        private FileParserFactory parserFactory;
+        private HashSet<string> _stopWords = new HashSet<string>();
+        private EnglishPorter2Stemmer _stemmer = new EnglishPorter2Stemmer();
+        private FileParserFactory _parserFactory;
 
         public Indexer()
         {
@@ -29,13 +29,13 @@ namespace Axle.Engine
         /// <param name="stopWordsFileURL">The path to the stopwords file</param>
         public Indexer(FileParserFactory parserFactory_, string stopWordsFileURL)
         {
-            parserFactory = parserFactory_;
+            _parserFactory = parserFactory_;
             ReadStopWords(stopWordsFileURL);
         }
 
         public Indexer(FileParserFactory parserFactory_)
         {
-            parserFactory = parserFactory_;
+            _parserFactory = parserFactory_;
         }
         
         /// <summary>
@@ -44,10 +44,10 @@ namespace Axle.Engine
         /// <param name="stopWordsFileURL">The path to the stopwords file</param>
         public void ReadStopWords(string stopWordsFileURL)
         {
-            stopWords.Clear();
+            _stopWords.Clear();
             foreach (string line in File.ReadAllLines(stopWordsFileURL))
             {
-                stopWords.Add(line);
+                _stopWords.Add(line);
             }
         }
         public Dictionary<string, List<TokenDocument>> BuildIndex(List<string> documentURLs)
@@ -117,7 +117,7 @@ namespace Axle.Engine
         {
             // fetch the appropriate parser for the document
             string ext = Path.GetExtension(documentURL).Substring(1);
-            FileParserBase parser = parserFactory.GetParser(ext);
+            FileParserBase parser = _parserFactory.GetParser(ext);
 
             // parse the text
             string text = parser.ParseLocalFile(documentURL).ToLower();
@@ -207,7 +207,7 @@ namespace Axle.Engine
         /// <returns>A list of resulting words</returns>
         public List<string> StemWords(List<string> words)
         {
-            return words.ConvertAll<string>((string word) => stemmer.Stem(word).Value);
+            return words.ConvertAll<string>((string word) => _stemmer.Stem(word).Value);
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace Axle.Engine
         /// <returns>A list of filtered words</returns>
         public List<string> RemoveStopWords(List<string> words)
         {
-            return words.FindAll((string word) => !stopWords.Contains(word));
+            return words.FindAll((string word) => !_stopWords.Contains(word));
         }
 
         /// <summary>
