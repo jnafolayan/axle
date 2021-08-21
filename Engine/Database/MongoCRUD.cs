@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Axle.Server.Database
+namespace Axle.Engine.Database
 {
     public class MongoCRUD
     {

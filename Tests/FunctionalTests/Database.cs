@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using Xunit;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Axle.Server.Database;
-using Axle.Server.Database.Models.Index;
+using Axle.Engine.Database;
+using Axle.Engine.Database.Models.Index;
 
 namespace Axle.FunctionalTests.Database
 {

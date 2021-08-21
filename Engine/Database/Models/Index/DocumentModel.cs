@@ -1,7 +1,7 @@
 using System;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Axle.Server.Database.Models.Index
+namespace Axle.Engine.Database.Models.Index
 {
     public class DocumentModel
     {

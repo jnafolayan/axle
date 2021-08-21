@@ -2,7 +2,7 @@ using System;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
-namespace Axle.Server.Database.Models.Index
+namespace Axle.Engine.Database.Models.Index
 {
     public class TokenModel
     {
