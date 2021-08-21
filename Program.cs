@@ -15,13 +15,10 @@ namespace Axle
     {
         public static void Main(string[] args)
         {
-            //CreateHostBuilder(args).Build().Run();
+            // Create database to store Index 
+            MongoCRUD IndexCRUD = new MongoCRUD("Index");
 
-
-            // Create MongoDB instance and database to store Index 
-            MongoCRUD db = new MongoCRUD("Index");
-
-            //db.InsertRecord("Document");
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -8,8 +8,8 @@ namespace Axle.Server.Database.Models.Index
     {
         [BsonId]
         public Guid Id {get; set;}
-        string Token {get; set;}
-        decimal Idf {get; set;}
-        List<DocumentModel> ContainingDocuments = new List<DocumentModel>();
+        public string Token {get; set;}
+        public decimal Idf {get; set;}
+        public List<DocumentModel> ContainingDocuments = new List<DocumentModel>();
     }
 }

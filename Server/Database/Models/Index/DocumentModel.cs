@@ -6,10 +6,10 @@ namespace Axle.Server.Database.Models.Index
     public class DocumentModel
     {
         [BsonId]
-        public Guid Id {get; set;}
-        public decimal Tf {get; set;}
-        public string SourcePath {get; set;}
-        public bool IsIndexed {get; set;}
-        public DateTime DateIndexed {get; set;}
+        public Guid Id {get; internal set;}
+        public decimal Tf {get; internal set;}
+        public string SourcePath {get; internal set;}
+        public bool IsIndexed {get; internal set;}
+        public DateTime DateIndexed {get; internal set;}
     }
 }
