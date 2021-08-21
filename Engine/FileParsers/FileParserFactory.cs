@@ -12,6 +12,11 @@ namespace Axle.Engine.FileParsers
             parsers = new Dictionary<string, FileParserBase>();
         }
 
+        /// <summary>
+        /// Registers a new parser for an extension
+        /// </summary>
+        /// <param name="ext">The file extension</param>
+        /// <param name="parser">An instance of a parser</param>
         public void RegisterParser(string ext, FileParserBase parser)
         {
             if (parsers.ContainsKey(ext))
@@ -22,6 +27,11 @@ namespace Axle.Engine.FileParsers
             parsers.Add(ext, parser);
         }
 
+        /// <summary>
+        /// Gets the parser registered for an extension
+        /// </summary>
+        /// <param name="ext"></param>
+        /// <returns>The parser instance</returns>
         public FileParserBase GetParser(string ext)
         {
             if (parsers.ContainsKey(ext))
@@ -30,6 +40,23 @@ namespace Axle.Engine.FileParsers
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets all file extensions that are supported
+        /// </summary>
+        /// <returns>A list of all extensions</returns>
+        public List<string> GetSupportedFileExtensions()
+        {
+            var keys = parsers.Keys;
+            var exts = new List<string>();
+            
+            foreach (var key in keys)
+            {
+                exts.Add(key);
+            }
+
+            return exts;
         }
     }
 }

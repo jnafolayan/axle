@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Xunit;
-using Axle.Engine.Indexer;
+using Axle.Engine;
 using Axle.Engine.FileParsers;
 using System.Collections.Generic;
 
@@ -71,8 +71,8 @@ namespace Axle.FunctionalTests.Indexing
             var wordFreqs = indexer.CountWordFrequencies(text, out wordCount);
             var tfScores = indexer.CalculateTFScores(wordFreqs, wordCount);
 
-            Assert.Equal(2 / 5.0, tfScores["hello"].TFScore);
-            Assert.Equal(1 / 5.0, tfScores["world"].TFScore);
+            Assert.Equal((decimal)2 / 5, tfScores["hello"].TFScore);
+            Assert.Equal((decimal)1 / 5, tfScores["world"].TFScore);
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace Axle.FunctionalTests.Indexing
             fpFactory.RegisterParser("docx", new WordDocumentParser());
 
             Indexer indexer = new Indexer(fpFactory, GetResourcePath("../../Engine/resources/stopwords.txt"));
-            string[] documents = new string[]{
+            var documents = new List<string>{
                 GetResourcePath("file.docx"),
                 GetResourcePath("file.html"),
                 GetResourcePath("file.xlsx")
@@ -92,14 +92,14 @@ namespace Axle.FunctionalTests.Indexing
 
             var index = indexer.BuildIndex(documents);
             Assert.NotEmpty(index);
-            Assert.NotEmpty(index[0].Value);
-            Assert.NotEqual(0, index[0].Value[0].TFScore);
+            Assert.NotEmpty(index["lorem"]);
+            Assert.NotEqual(0, index["lorem"][0].TFScore);
             // foreach (var entry in index)
             // {
             //     var s = "";
             //     entry.Value.ForEach((t) => {
             //         if (s.Length > 0) s += ", ";
-            //         s += "( " + Path.GetFileName(t.DocumentURL) + ", score: " + t.TFScore + " )"; 
+            //         s += "( " + Path.GetFileName(t.SourcePath) + ", score: " + t.TFScore + " )"; 
             //     });
             //     Console.WriteLine("{0,25}: {1}", entry.Key, s);
             // }

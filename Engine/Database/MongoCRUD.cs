@@ -8,7 +8,7 @@ namespace Axle.Engine.Database
 {
     public class MongoCRUD
     {
-        private IMongoDatabase db;
+        protected IMongoDatabase db;
 
         /// <summary>
         /// constructor for local MongoDB instance. Served on localhost:27017

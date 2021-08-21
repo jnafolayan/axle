@@ -2,16 +2,24 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Axle.Engine;
+using System.Threading.Tasks;
 
 namespace Axle.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SearchController : ControllerBase 
+    public class SearchController : ControllerBase
     {
+        private SearchEngine engine;
 
-        [HttpPost]
-        public ActionResult<IEnumerable<SearchResultItem>> Search(SearchQuery searchQuery)
+        public SearchController(SearchEngine engine)
+        {
+            this.engine = engine;
+            this.engine.IndexAllDocuments();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SearchResultItem>>> Search([FromQuery] SearchQuery searchQuery)
         {
             // Query should be passed into engine search function
             // Engine should return a List of SearchResultItem
@@ -20,18 +28,8 @@ namespace Axle.Server.Controllers
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
 
-            return new List<SearchResultItem>{
-                new SearchResultItem{
-                    Title = "Result 1",
-                    Description = "First result",
-                    Link = "https://1.com",
-                },
-                new SearchResultItem{
-                    Title = "Result 2",
-                    Description = "Second result",
-                    Link = "https://2.com",
-                }
-            };
+            var results = await engine.ExecuteQuery(searchQuery.Query);
+            return results;
         }
     }
 }
