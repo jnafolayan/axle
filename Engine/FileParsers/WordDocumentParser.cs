@@ -1,5 +1,5 @@
-using System;
 using System.IO;
+using Spire.Doc;
 using DocumentFormat.OpenXml.Packaging;
 
 namespace Axle.Engine.FileParsers
@@ -20,10 +20,19 @@ namespace Axle.Engine.FileParsers
             {
                 throw new FileNotFoundException($"File not found: {filePath}");
             }
+            else if (Path.GetExtension(filePath) == ".doc")
+            {
+                // Convert the file from .doc to .docx
+                Document doc = new Document();
+                doc.LoadFromFile(filePath);
+                filePath = $"{filePath}.docx";
+                doc.SaveToFile(filePath, FileFormat.Docx2013);
+            }
 
             using (WordprocessingDocument docxFile = WordprocessingDocument.Open(filePath, false))
             {
                 string content = docxFile.MainDocumentPart.Document.Body.InnerText;
+                File.Delete(filePath);
                 return content;
             }
         }
