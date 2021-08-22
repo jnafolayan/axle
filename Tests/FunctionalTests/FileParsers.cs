@@ -20,7 +20,7 @@ namespace Axle.FunctionalTests.FileParsers
             var filePath = GetResourcePath("file.xlsx");
             var xlsxParser = new SpreadsheetsParser();
             var contents = xlsxParser.ParseLocalFile(filePath);
-            
+
             Assert.NotEmpty(contents);
         }
         [Fact]
@@ -29,7 +29,16 @@ namespace Axle.FunctionalTests.FileParsers
             var filePath = GetResourcePath("file.docx");
             var docxParser = new WordDocumentParser();
             var contents = docxParser.ParseLocalFile(filePath);
-            
+
+            Assert.NotEmpty(contents);
+        }
+        [Fact]
+        public void ShouldParsePPTXFile()
+        {
+            var filePath = GetResourcePath("file.pptx");
+            var pptxParser = new PptxFileParser();
+            var contents = pptxParser.ParseLocalFile(filePath);
+
             Assert.NotEmpty(contents);
         }
 
@@ -39,7 +48,7 @@ namespace Axle.FunctionalTests.FileParsers
             var filePath = GetResourcePath("file.html");
             var htmlParser = new HTMLParser();
             var contents = htmlParser.ParseLocalFile(filePath);
-            
+
             Assert.NotEmpty(contents);
         }
 
@@ -49,7 +58,7 @@ namespace Axle.FunctionalTests.FileParsers
             var filePath = GetResourcePath("file.html");
             var htmlParser = new HTMLParser();
             var pageInfo = htmlParser.ExtractHTMLFileInfo(filePath);
-             
+
             Assert.Equal("Test File", pageInfo.Title);
             Assert.Empty(pageInfo.Description);
         }
@@ -63,7 +72,7 @@ namespace Axle.FunctionalTests.FileParsers
             var fpFactory = new FileParserFactory();
             fpFactory.RegisterParser("html", new HTMLParser());
             fpFactory.RegisterParser("xlsx", new SpreadsheetsParser());
-            
+
             Assert.IsType<HTMLParser>(fpFactory.GetParser("html"));
             Assert.IsType<SpreadsheetsParser>(fpFactory.GetParser("xlsx"));
         }
