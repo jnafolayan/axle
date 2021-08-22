@@ -16,14 +16,25 @@ namespace Axle.Engine.FileParsers
         /// <returns>The text contained in the file</returns>
         public override string ParseLocalFile(string filePath)
         {
+            string newFileName = filePath;
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException($"File not found: {filePath}");
             }
+            if (Path.GetExtension(filePath) == ".doc")
+            {
+                // Cr
+                newFileName = $"{Path.ChangeExtension(filePath, null)}.docx";
+                File.Copy(filePath, newFileName);
+            }
 
-            using (WordprocessingDocument docxFile = WordprocessingDocument.Open(filePath, false))
+            using (WordprocessingDocument docxFile = WordprocessingDocument.Open(newFileName, false))
             {
                 string content = docxFile.MainDocumentPart.Document.Body.InnerText;
+                if (newFileName != filePath)
+                {
+                    File.Delete(newFileName);
+                }
                 return content;
             }
         }

@@ -23,6 +23,15 @@ namespace Axle.FunctionalTests.FileParsers
             
             Assert.NotEmpty(contents);
         }
+        [Fact]
+        public void ShouldParseDOCXFile()
+        {
+            var filePath = GetResourcePath("file.docx");
+            var docxParser = new WordDocumentParser();
+            var contents = docxParser.ParseLocalFile(filePath);
+            
+            Assert.NotEmpty(contents);
+        }
 
         [Fact]
         public void ShouldParseHTMLFile()
