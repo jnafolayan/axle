@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
+using S = Spire.Presentation;
+using D = DocumentFormat.OpenXml.Drawing;
 
 namespace Axle.Engine.FileParsers
 {
@@ -25,6 +27,14 @@ namespace Axle.Engine.FileParsers
             {
                 throw new FileNotFoundException($"File not found: {filePath}");
             }
+            else if (Path.GetExtension(filePath) == ".ppt")
+            {
+                // Convert the file from .ppt to .pptx
+                S.Presentation presentation = new S.Presentation();
+                presentation.LoadFromFile(filePath);
+                filePath = $"{filePath}.pptx";
+                presentation.SaveToFile(filePath, S.FileFormat.Pptx2010);
+            }
 
             int numberOfSlides = CountSlides(filePath);
             string slideText;
@@ -34,6 +44,7 @@ namespace Axle.Engine.FileParsers
                 GetSlideIdAndText(out slideText, filePath, i);
                 content.Append(slideText);
             }
+            File.Delete(filePath);
             return Convert.ToString(content);
         }
 
@@ -86,8 +97,8 @@ namespace Axle.Engine.FileParsers
                 StringBuilder paragraphText = new StringBuilder();
 
                 // Get the inner text of the slide:
-                IEnumerable<DocumentFormat.OpenXml.Drawing.Text> texts = slide.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
-                foreach (DocumentFormat.OpenXml.Drawing.Text text in texts)
+                IEnumerable<D.Text> texts = slide.Slide.Descendants<D.Text>();
+                foreach (D.Text text in texts)
                 {
                     paragraphText.Append(text.Text);
                 }

@@ -11,5 +11,6 @@
     <PackageReference Include="itext7" Version="7.1.16"/>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.36"/>
     <PackageReference Include="Porter2Stemmer" Version="1.0.0"/>
+    <PackageReference Include="FreeSpire.Presentation" Version="4.11.0"/>
   </ItemGroup>
 </Project>
