@@ -23,7 +23,7 @@ namespace Axle.Engine.FileParsers
             }
             if (Path.GetExtension(filePath) == ".doc")
             {
-                // Cr
+                // Create a copy of the file
                 newFileName = $"{Path.ChangeExtension(filePath, null)}.docx";
                 File.Copy(filePath, newFileName);
             }
@@ -33,6 +33,7 @@ namespace Axle.Engine.FileParsers
                 string content = docxFile.MainDocumentPart.Document.Body.InnerText;
                 if (newFileName != filePath)
                 {
+                    // Delete the file copy created earlier
                     File.Delete(newFileName);
                 }
                 return content;
