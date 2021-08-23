@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Axle.Engine;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Axle
 {
@@ -25,6 +27,17 @@ namespace Axle
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<SearchEngineConfig>(
+        Configuration.GetSection(nameof(SearchEngineConfig)));
+
+            services.AddSingleton<SearchEngineConfig>(sp =>
+            sp.GetRequiredService<IOptions<SearchEngineConfig>>().Value);
+
+            services.AddSingleton<SearchEngine>(sp => {
+                var config = sp.GetRequiredService<IOptions<SearchEngineConfig>>().Value;
+                return new SearchEngine(config);
+            });
+
             services.AddControllers();
         }
 

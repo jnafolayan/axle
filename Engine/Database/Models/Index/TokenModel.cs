@@ -7,9 +7,14 @@ namespace Axle.Engine.Database.Models.Index
     public class TokenModel
     {
         [BsonId]
-        public Guid Id {get; set;}
         public string Token {get; set;}
         public decimal Idf {get; set;}
-        public List<DocumentModel> ContainingDocuments = new List<DocumentModel>();
+        public List<TokenDocumentModel> ContainingDocuments = new List<TokenDocumentModel>();
+    }
+
+    public class TokenDocumentModel 
+    {
+        public decimal Tf { get; set; }
+        public Guid DocumentId { get; set; }
     }
 }

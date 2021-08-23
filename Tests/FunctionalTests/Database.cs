@@ -28,12 +28,11 @@ namespace Axle.FunctionalTests.Database
             MongoCRUD TestCRUD = CreateLocalTestDatabase();
 
             var id = new Guid(Guid.NewGuid().ToString());
-            decimal tf = 0.33M;
             string sourcePath = "C:/src/files";
             bool isIndexed = true;
             DateTime dateIndexed = DateTime.UtcNow;
 
-            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, Tf = tf, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
+            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
 
             Assert.IsType<DocumentModel>(TestCRUD.ReadCollection<DocumentModel>("TestTable")[0]);
 
@@ -56,7 +55,7 @@ namespace Axle.FunctionalTests.Database
             decimal idf = 0.56M;
             List<DocumentModel> ContainingDocuments = new List<DocumentModel>();
 
-            TestCRUD.InsertRecord("TestTable2", new TokenModel {Id = id, Token = token, Idf = idf});
+            TestCRUD.InsertRecord("TestTable2", new TokenModel {Token = token, Idf = idf});
 
             Assert.IsType<TokenModel>(TestCRUD.ReadCollection<TokenModel>("TestTable2")[0]);
         }
@@ -68,17 +67,15 @@ namespace Axle.FunctionalTests.Database
 
             //expected values
             Guid id = Guid.NewGuid();
-            decimal tf = 0.33M;
             string sourcePath = "C:/src/files";
             bool isIndexed = true;
             DateTime dateIndexed = DateTime.UtcNow;
 
-            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, Tf = tf, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
+            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
 
             var entry = TestCRUD.ReadRecordById<DocumentModel>("TestTable", id);
 
             Assert.Equal(id, entry.Id);
-            Assert.Equal(tf, entry.Tf);
             Assert.Equal(sourcePath, entry.SourcePath);
             Assert.Equal(isIndexed, entry.IsIndexed);
         }
@@ -88,23 +85,20 @@ namespace Axle.FunctionalTests.Database
         {
             MongoCRUD TestCRUD = CreateLocalTestDatabase();
             Guid id = Guid.NewGuid();
-            decimal tf = 0.83M;
             string sourcePath = "C:/src/files";
             bool isIndexed = true;
             DateTime dateIndexed = DateTime.UtcNow;
 
-            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, Tf = tf, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
+            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
 
-            decimal tf_new = 0.18M;
             string sourcePath_new = "C:/src/new";
             bool isIndexed_new = false;
             DateTime dateIndexed_new = DateTime.UtcNow;
 
-            TestCRUD.UpsertRecord("TestTable", id, new DocumentModel {Id = id, Tf = tf_new, SourcePath = sourcePath_new, IsIndexed = isIndexed_new, DateIndexed = dateIndexed_new});
+            TestCRUD.UpsertRecord("TestTable", id, new DocumentModel {Id = id, SourcePath = sourcePath_new, IsIndexed = isIndexed_new, DateIndexed = dateIndexed_new});
 
             var entry = TestCRUD.ReadRecordById<DocumentModel>("TestTable", id);
 
-            Assert.Equal(tf_new, entry.Tf);
             Assert.Equal(sourcePath_new, entry.SourcePath);
             Assert.Equal(isIndexed_new, entry.IsIndexed);
         }
@@ -116,12 +110,11 @@ namespace Axle.FunctionalTests.Database
 
             //expected values
             Guid id = Guid.NewGuid();
-            decimal tf = 0.45M;
             string sourcePath = "C:/src/files";
             bool isIndexed = true;
             DateTime dateIndexed = DateTime.UtcNow;
 
-            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, Tf = tf, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
+            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
 
             var entry = TestCRUD.ReadRecordById<DocumentModel>("TestTable", id);
 
@@ -135,12 +128,11 @@ namespace Axle.FunctionalTests.Database
 
             //expected values
             Guid id = Guid.NewGuid();
-            decimal tf = 0.68M;
             string sourcePath = "C:/src/files/sdfghj";
             bool isIndexed = true;
             DateTime dateIndexed = DateTime.UtcNow;
 
-            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, Tf = tf, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
+            TestCRUD.InsertRecord("TestTable", new DocumentModel {Id = id, SourcePath = sourcePath, IsIndexed = isIndexed, DateIndexed = dateIndexed});
 
             TestCRUD.DeleteRecord<DocumentModel>("TestTable", id);
 

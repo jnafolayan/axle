@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Axle.Engine.FileParsers;
 using Porter2Stemmer;
 
-namespace Axle.Engine.Indexer
+namespace Axle.Engine
 {
     /// <summary>
     /// Indexer class
@@ -16,7 +16,7 @@ namespace Axle.Engine.Indexer
     {
         private HashSet<string> stopWords = new HashSet<string>();
         private EnglishPorter2Stemmer stemmer = new EnglishPorter2Stemmer();
-        private FileParserFactory parserFactory_;
+        private FileParserFactory parserFactory;
 
         public Indexer()
         {
@@ -27,15 +27,15 @@ namespace Axle.Engine.Indexer
         /// </summary>
         /// <param name="parserFactory">A reference to the parser factory</param>
         /// <param name="stopWordsFileURL">The path to the stopwords file</param>
-        public Indexer(FileParserFactory parserFactory, string stopWordsFileURL)
+        public Indexer(FileParserFactory parserFactory_, string stopWordsFileURL)
         {
-            parserFactory_ = parserFactory;
+            parserFactory = parserFactory_;
             ReadStopWords(stopWordsFileURL);
         }
 
-        public Indexer(FileParserFactory parserFactory)
+        public Indexer(FileParserFactory parserFactory_)
         {
-            parserFactory_ = parserFactory;
+            parserFactory = parserFactory_;
         }
         
         /// <summary>
@@ -50,39 +50,45 @@ namespace Axle.Engine.Indexer
                 stopWords.Add(line);
             }
         }
+        public Dictionary<string, List<TokenDocument>> BuildIndex(List<string> documentURLs)
+        {
+            return BuildIndex(documentURLs, (string s) => {});
+        }
 
         /// <summary>
         /// Builds an index from a list of documents
         /// </summary>
         /// <param name="documentURLs">A list of document file paths</param>
         /// <returns>A list of (token, document_token) pairs</returns>
-        public KeyValuePair<string, List<DocumentToken>>[] BuildIndex(string[] documentURLs)
+        public Dictionary<string, List<TokenDocument>> BuildIndex(List<string> documentURLs, Action<string> onAdded)
         {
-            ConcurrentDictionary<string, List<DocumentToken>> tokenMap = new ConcurrentDictionary<string, List<DocumentToken>>();
+            var tokenMap = new ConcurrentDictionary<string, List<TokenDocument>>();
             int maxTasksPerRun = 50;
             int i = 0;
             Task[] taskArray = new Task[maxTasksPerRun];
 
-            Func<string, List<DocumentToken>> CreateDocumentTokenList = (_) => new List<DocumentToken>();
+            Func<string, List<TokenDocument>> CreateTokenDocumentList = (_) => new List<TokenDocument>();
 
             Func<object, object> IndexFunc = (object url) =>
             {
-                string documentURL = (string)url;
-                Dictionary<string, DocumentToken> tfScores = ParseDocument(documentURL);
+                var documentURL = (string)url;
+                Dictionary<string, TokenDocument> tfScores = ParseDocument(documentURL);
 
                 foreach (string token in tfScores.Keys)
                 {
-                    tokenMap.GetOrAdd(token, CreateDocumentTokenList);
-                    tfScores[token].DocumentURL = documentURL;
+                    tokenMap.GetOrAdd(token, CreateTokenDocumentList);
+                    tfScores[token].SourcePath = documentURL;
                     tokenMap[token].Add(tfScores[token]);
                 }
+
+                onAdded(documentURL);
 
                 return null;
             };
 
-            while (i < documentURLs.Length)
+            while (i < documentURLs.Count)
             {
-                int stop = Math.Min(documentURLs.Length, i + maxTasksPerRun);
+                int stop = Math.Min(documentURLs.Count, i + maxTasksPerRun);
                 int k = 0;
 
                 int batchSize = stop - i;
@@ -99,7 +105,7 @@ namespace Axle.Engine.Indexer
                 Task.WaitAll(taskArray);
             }
 
-            return tokenMap.ToArray();
+            return new Dictionary<string, List<TokenDocument>>(tokenMap);
         }
 
         /// <summary>
@@ -107,18 +113,18 @@ namespace Axle.Engine.Indexer
         /// </summary>
         /// <param name="documentURL">The path to the document</param>
         /// <returns>(token, document_token) pairs</returns>
-        public Dictionary<string, DocumentToken> ParseDocument(string documentURL)
+        public Dictionary<string, TokenDocument> ParseDocument(string documentURL)
         {
             // fetch the appropriate parser for the document
             string ext = Path.GetExtension(documentURL).Substring(1);
-            FileParserBase parser = parserFactory_.GetParser(ext);
+            FileParserBase parser = parserFactory.GetParser(ext);
 
             // parse the text
             string text = parser.ParseLocalFile(documentURL).ToLower();
             int termsCount;
 
             Dictionary<string, int> wordFreqs = CountWordFrequencies(text, out termsCount);
-            Dictionary<string, DocumentToken> tfScores = CalculateTFScores(wordFreqs, termsCount);
+            Dictionary<string, TokenDocument> tfScores = CalculateTFScores(wordFreqs, termsCount);
 
             return tfScores;
         }
@@ -134,16 +140,8 @@ namespace Axle.Engine.Indexer
         /// <returns>token/count pairs</returns>
         public Dictionary<string, int> CountWordFrequencies(string text, out int termsCount)
         {
-            Dictionary<string, int> wordFreqs = new Dictionary<string, int>();
-            // remove punctuation
-            List<string> terms = new List<string>(RemovePunctuation(text.Trim()).Split(" "));
-
-            // remove stop words
-            terms = RemoveStopWords(terms);
-            // ignore empty strings
-            terms = RemoveEmptyStrings(terms);
-            // stem words
-            terms = StemWords(terms);
+            var wordFreqs = new Dictionary<string, int>();
+            List<string> terms = PreprocessText(text);
 
             foreach (string term in terms)
             {
@@ -162,21 +160,44 @@ namespace Axle.Engine.Indexer
         /// <param name="wordFreqs">A frequency dictionary</param>
         /// <param name="termsCount">The total number of words</param>
         /// <returns>token/document_token pairs</returns>
-        public Dictionary<string, DocumentToken> CalculateTFScores(Dictionary<string, int> wordFreqs, int termsCount)
+        public Dictionary<string, TokenDocument> CalculateTFScores(Dictionary<string, int> wordFreqs, int termsCount)
         {
-            Dictionary<string, DocumentToken> tokens = new Dictionary<string, DocumentToken>();
+            var tokens = new Dictionary<string, TokenDocument>();
 
             foreach (string token in wordFreqs.Keys)
             {
                 // TODO: handle first entries
-                tokens[token] = new DocumentToken
+                tokens[token] = new TokenDocument
                 {
                     Count = wordFreqs[token],
-                    TFScore = (double)wordFreqs[token] / termsCount
+                    TFScore = (decimal)wordFreqs[token] / termsCount
                 };
             }
 
             return tokens;
+        }
+
+        /// <summary>
+        /// Preprocesses text into valid terms
+        /// </summary>
+        /// <param name="text">text content</param>
+        /// <returns>a list of valid terms</returns>
+        public List<string> PreprocessText(string text)
+        {
+            string trimmed = text.Trim();
+            // remove punctuation
+            trimmed = RemovePunctuation(trimmed);
+            // remove special characters
+            trimmed = RemoveSpecialCharacters(trimmed);
+            
+            var terms = new List<string>(Regex.Split(trimmed, @"\s"));
+            // remove stop words
+            // terms = RemoveStopWords(terms);
+            // ignore empty strings
+            terms = RemoveEmptyStrings(terms);
+            // stem words
+            terms = StemWords(terms);
+            return terms;
         }
 
         /// <summary>
@@ -187,6 +208,16 @@ namespace Axle.Engine.Indexer
         public List<string> StemWords(List<string> words)
         {
             return words.ConvertAll<string>((string word) => stemmer.Stem(word).Value);
+        }
+
+        /// <summary>
+        /// Removes special characters
+        /// </summary>
+        /// <param name="text">Body of text</param>
+        /// <returns>A list of filtered words</returns>
+        public string RemoveSpecialCharacters(string text)
+        {
+            return Regex.Replace(text, @"[^0-9a-zA-Z\s]+", "");
         }
 
         /// <summary>
@@ -202,11 +233,11 @@ namespace Axle.Engine.Indexer
         /// <summary>
         /// Removes punctuations
         /// </summary>
-        /// <param name="words">A list of words</param>
+        /// <param name="text">Body of text</param>
         /// <returns>A list of filtered words</returns>
         public string RemovePunctuation(string text)
         {
-            return Regex.Replace(text, @"[^\w\s]", "");
+            return Regex.Replace(text, @"\p{P}", "");
         }
 
         /// <summary>
@@ -222,11 +253,11 @@ namespace Axle.Engine.Indexer
         /// <summary>
         /// Contains information about a token
         /// </summary>
-        public class DocumentToken
+        public class TokenDocument
         {
-            public double TFScore { get; set; }
+            public decimal TFScore { get; set; }
             public double Count { get; set; }
-            public string DocumentURL { get; set; }
+            public string SourcePath { get; set; }
         }
     }
 }

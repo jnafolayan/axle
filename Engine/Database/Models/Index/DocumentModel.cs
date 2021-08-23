@@ -7,8 +7,9 @@ namespace Axle.Engine.Database.Models.Index
     {
         [BsonId]
         public Guid Id {get; internal set;}
-        public decimal Tf {get; internal set;}
         public string SourcePath {get; internal set;}
+        public string Title { get; internal set;}
+        public string Description { get; internal set;}
         public bool IsIndexed {get; internal set;}
         public DateTime DateIndexed {get; internal set;}
     }
