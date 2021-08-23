@@ -10,12 +10,11 @@ namespace Axle.Server.Controllers
     [Route("[controller]")]
     public class SearchController : ControllerBase
     {
-        private SearchEngine engine;
+        private SearchEngine _engine;
 
         public SearchController(SearchEngine engine)
         {
-            this.engine = engine;
-            this.engine.IndexAllDocuments();
+            _engine = engine;
         }
 
         [HttpGet]
@@ -28,7 +27,7 @@ namespace Axle.Server.Controllers
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
 
-            var results = await engine.ExecuteQuery(searchQuery.Query);
+            var results = await _engine.ExecuteQuery(searchQuery.Query);
             return results;
         }
     }

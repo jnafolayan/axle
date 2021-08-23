@@ -18,13 +18,13 @@ namespace Axle.Server.Controllers
     public class UploadController : ControllerBase
     {
 
-        private SearchEngine engine;
+        private SearchEngine _engine;
         private IWebHostEnvironment _hostingEnvironment;
 
         public UploadController(IWebHostEnvironment env, SearchEngine engine)
         {
             _hostingEnvironment = env;
-            this.engine = engine;
+            _engine = engine;
         }
 
         private string[] validTypes = new string[]{
@@ -109,7 +109,7 @@ namespace Axle.Server.Controllers
         private async Task<string[]> saveDocumentToDisk(IFormFile document)
         {
             string guid = Utils.GenerateGUID(11);
-            var extension = Regex.Match(document.FileName, @"\.\S+$").Value ?? "";
+            var extension = Path.GetExtension(document.FileName);
             // name_guid.ext
             var newFileName = Regex.Replace(document.FileName, @"\.\S+$", "__" + guid + extension);
             string uploadDir = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
@@ -120,7 +120,7 @@ namespace Axle.Server.Controllers
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await document.CopyToAsync(fileStream);
-                    await engine.AddDocument(filePath);
+                    await _engine.AddDocument(filePath);
                 }
             }
 
@@ -130,9 +130,8 @@ namespace Axle.Server.Controllers
 
         private bool CanParseDocument(IFormFile document)
         {
-            var fileInfo = new FileInfo(document.FileName);
-            var ext = fileInfo.Extension.Substring(1);
-            return engine.CanParseDocumentType(ext);
+            var ext = Path.GetExtension(document.FileName).Substring(1);
+            return _engine.CanParseDocumentType(ext);
         }
 
         private UploadResponse createResponse(string status, string message)

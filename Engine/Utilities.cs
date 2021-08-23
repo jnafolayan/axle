@@ -9,8 +9,8 @@ namespace Axle.Engine
     /// </summary>
     public static class Utils
     {
-        private static Random rng = new Random();
-        private static string characters = Utils.Shuffle("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        private static Random _rng = new Random();
+        private static string _characters = Utils.Shuffle("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
         /// <summary>
         /// Generated GUIDs of a fixed size
@@ -23,8 +23,8 @@ namespace Axle.Engine
             int random;
             for (int i = 0; i < size; i++)
             {
-                random = (int)(rng.NextDouble() * characters.Length);
-                builder.Append(characters[random]);
+                random = (int)(_rng.NextDouble() * _characters.Length);
+                builder.Append(_characters[random]);
             }
 
             return builder.ToString();
@@ -66,7 +66,7 @@ namespace Axle.Engine
             T temp;
             for (int i = 0; i < list.Count; i++)
             {
-                random = (int)(rng.NextDouble() * (list.Count - i));
+                random = (int)(_rng.NextDouble() * (list.Count - i));
                 temp = list[i + random];
                 list[i + random] = list[i];
                 list[i] = temp;
