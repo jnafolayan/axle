@@ -11,6 +11,8 @@ namespace Axle.Server.Controllers
     public class UploadInput
     {
         public string Type { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
         public IFormFile Document { get; set; }
         public string Link { get; set; }
     }

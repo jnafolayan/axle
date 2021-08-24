@@ -43,6 +43,7 @@ namespace Axle.Server.Controllers
                     "No upload type found"
                 ));
 
+
             string uploadType = uploadInput.Type.ToLower();
             if (Array.IndexOf(validTypes, uploadType) == -1)
                 return BadRequest(createResponse(
@@ -72,7 +73,7 @@ namespace Axle.Server.Controllers
                     ));
                 }
 
-                documentDetails = await saveDocumentToDisk(uploadInput.Document);
+                documentDetails = await saveDocumentToDisk(uploadInput.Document, uploadInput.Title, uploadInput.Description);
             }
 
             return Ok(createResponse(
@@ -106,7 +107,7 @@ namespace Axle.Server.Controllers
             return null;
         }
 
-        private async Task<string[]> saveDocumentToDisk(IFormFile document)
+        private async Task<string[]> saveDocumentToDisk(IFormFile document, String title, String description)
         {
             string guid = Utils.GenerateGUID(11);
             var extension = Path.GetExtension(document.FileName);
@@ -115,12 +116,18 @@ namespace Axle.Server.Controllers
             string uploadDir = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
             string filePath = Path.Combine(uploadDir, newFileName);
 
+            if (title is null)
+                title = document.FileName;
+            
+            if (description is null)
+                description = "";
+
             if (document.Length > 0)
             {
                 using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await document.CopyToAsync(fileStream);
-                    await _engine.AddDocument(filePath);
+                    await _engine.AddDocument(filePath, title, description);
                 }
             }
 
