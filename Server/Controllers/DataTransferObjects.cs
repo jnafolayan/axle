@@ -8,6 +8,11 @@ namespace Axle.Server.Controllers
     {
         public string Query { get; set; }
     }
+    
+    public class UploadFolderQuery
+    {
+        public string Path { get; set; }
+    }
 
     public class UploadInput
     {
