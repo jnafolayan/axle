@@ -20,8 +20,6 @@ namespace Axle.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SearchResultItem>>> Search([FromQuery] SearchQuery searchQuery)
         {
-            // Query should be passed into engine search function
-            // Engine should return a List of SearchResultItem
 
             // Make sure a query is present
             if (searchQuery is null || searchQuery.Query is null)
