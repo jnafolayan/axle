@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
@@ -59,21 +60,30 @@ namespace Axle.Server.Controllers
             // TODO: If type is web url, download the associated file content
 
             // Save the document if one exists and get the details
-            // documentDetails[0] = path
-            // documentDetails[1] = extension (currently based on the file name)
-            string[] documentDetails;
-            if (IsValidDocument(uploadInput.Document))
+            List<UploadError> errors = new List<UploadError>();
+            if (IsValidDocuments(uploadInput.Documents))
             {
-                // Ensure we can parse the document
-                if (!CanParseDocument(uploadInput.Document))
-                {
-                    return UnprocessableEntity(createResponse(
-                        "UNPROCESSABLE_DOCUMENT",
-                        "Cannot parse document"
-                    ));
-                }
+                foreach(IFormFile document in uploadInput.Documents) {
+                    // Ensure we can parse the document
+                    if (!CanParseDocument(document))
+                    {
+                        errors.Add(new UploadError{
+                            Status = "UNPROCESSABLE_DOCUMENT",
+                            Message = "Cannot parse document"
+                        });
+                        continue;
+                    }
 
-                documentDetails = await saveDocumentToDisk(uploadInput.Document, uploadInput.Title, uploadInput.Description);
+                    await saveDocumentToDisk(document);
+                }
+            }
+
+            if (errors.Count > 0){
+                return Ok(createResponse(
+                    "PARTIAL_SUCCESS",
+                    "Some resources failed to upload",
+                    errors
+                ));
             }
 
             return Ok(createResponse(
@@ -84,10 +94,10 @@ namespace Axle.Server.Controllers
         private UploadResponse ValidateUploadInput(string uploadType, UploadInput uploadInput)
         {
             if (uploadType == "document")
-                if (!IsValidDocument(uploadInput.Document))
+                if (!IsValidDocuments(uploadInput.Documents))
                     return createResponse(
                         "TYPE_REQUIRMENT_MISSING",
-                        "Upload type 'document' requires you to set the 'document' field"
+                        "Upload type 'document' requires you to set the 'documents' field"
                     );
 
             if (uploadType == "url")
@@ -98,21 +108,20 @@ namespace Axle.Server.Controllers
                     );
 
             if (uploadType == "sitemap")
-                if (!IsValidLink(uploadInput.Link) || !IsValidDocument(uploadInput.Document))
+                if (!IsValidLink(uploadInput.Link) || !IsValidDocuments(uploadInput.Documents))
                     return createResponse(
                         "TYPE_REQUIREMENT_MISSING",
-                        "Upload type 'sitemap' requires you to set either 'document' or 'link' field"
+                        "Upload type 'sitemap' requires you to set either 'documents' or 'link' field"
                     );
 
             return null;
         }
 
-        private async Task<string[]> saveDocumentToDisk(IFormFile document, String title, String description)
+        private async Task<string[]> saveDocumentToDisk(IFormFile document, String title = "", String description = "")
         {
             string guid = Utils.GenerateGUID(11);
             var extension = Path.GetExtension(document.FileName);
-            // name_guid.ext
-            var newFileName = Regex.Replace(document.FileName, @"\.\S+$", "__" + guid + extension);
+            var newFileName = Regex.Replace(document.FileName, @"\.\S+$", "__" + guid + extension); // name_guid.ext
             string uploadDir = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
             string filePath = Path.Combine(uploadDir, newFileName);
 
@@ -141,12 +150,13 @@ namespace Axle.Server.Controllers
             return _engine.CanParseDocumentType(ext);
         }
 
-        private UploadResponse createResponse(string status, string message)
+        private UploadResponse createResponse(string status, string message, List<UploadError> errors = null)
         {
             return new UploadResponse
             {
                 Status = status,
-                Message = message
+                Message = message,
+                Errors = errors,
             };
         }
         private bool IsValidLink(string link)
@@ -158,9 +168,12 @@ namespace Axle.Server.Controllers
             return Uri.TryCreate(link, UriKind.Absolute, out uri) &&
                     (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         }
-        private bool IsValidDocument(IFormFile file)
+        private bool IsValidDocuments(IFormFile[] documents)
         {
-            return file != null;
+            if (documents is null)
+                return false;
+
+            return documents.Length > 0;
         }
 
     }
