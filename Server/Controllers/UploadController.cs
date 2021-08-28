@@ -1,12 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.Net;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Axle.Engine;
 using System.Text.RegularExpressions;
+using MimeTypes;
 
 namespace Axle.Server.Controllers
 {
@@ -21,11 +23,13 @@ namespace Axle.Server.Controllers
 
         private SearchEngine _engine;
         private IWebHostEnvironment _hostingEnvironment;
+        private WebClient _client;
 
         public UploadController(IWebHostEnvironment env, SearchEngine engine)
         {
             _hostingEnvironment = env;
             _engine = engine;
+            _client = new WebClient();
         }
 
         private string[] validTypes = new string[]{
@@ -61,22 +65,10 @@ namespace Axle.Server.Controllers
 
             // Save the document if one exists and get the details
             List<UploadError> errors = new List<UploadError>();
-            if (IsValidDocuments(uploadInput.Documents))
-            {
-                foreach(IFormFile document in uploadInput.Documents) {
-                    // Ensure we can parse the document
-                    if (!CanParseDocument(document))
-                    {
-                        errors.Add(new UploadError{
-                            Status = "UNPROCESSABLE_DOCUMENT",
-                            Message = "Cannot parse document"
-                        });
-                        continue;
-                    }
-
-                    await saveDocumentToDisk(document);
-                }
-            }
+            if (uploadType == "documents")
+                errors = await UploadDocuments(uploadInput, errors);
+            else if (uploadType == "url")
+                errors = await UploadWebUrl(uploadInput, errors);
 
             if (errors.Count > 0){
                 return Ok(createResponse(
@@ -115,6 +107,56 @@ namespace Axle.Server.Controllers
                     );
 
             return null;
+        }
+
+        private async Task<List<UploadError>> UploadDocuments(UploadInput uploadInput, List<UploadError> errors)
+        {
+            if (IsValidDocuments(uploadInput.Documents))
+            {
+                foreach(IFormFile document in uploadInput.Documents) {
+                    // Ensure we can parse the document
+                    if (!CanParseDocument(document))
+                    {
+                        errors.Add(new UploadError{
+                            Status = "UNPROCESSABLE_DOCUMENT",
+                            Message = "Cannot parse document"
+                        });
+                        continue;
+                    }
+
+                    await saveDocumentToDisk(document);
+                }
+            }
+            return errors;
+        }
+
+        private async Task<List<UploadError>> UploadWebUrl(UploadInput uploadInput, List<UploadError> errors)
+        {
+            // Get the extension of the link
+            // if the link type is parsable, then you download the content and add to db
+            // else you ignore it and return the unprocessable document error
+
+            WebRequest request = HttpWebRequest.Create(uploadInput.Link);
+            request.Method = "HEAD";
+
+            string mimetype = request.GetResponse().ContentType;
+            string extension = MimeTypeMap.GetExtension(mimetype);
+            extension = extension.Substring(1);
+
+            if(!_engine.CanParseDocumentType(extension)){
+                errors.Add(new UploadError{
+                    Status = "UNPROCESSABLE_DOCUMENT",
+                    Message = "Cannot parse document"
+                });
+                return errors;
+            }
+
+            string fileName = Utils.GenerateGUID(11) + "." + extension;
+            string filePath = Path.GetFullPath("./wwroot/uploads/" + fileName);
+            _client.DownloadFile(uploadInput.Link, "./wwwroot/uploads/" + fileName);
+            await _engine.AddDocument(filePath, "", "");
+
+            return errors;
         }
 
         private async Task<string[]> saveDocumentToDisk(IFormFile document, String title = "", String description = "")

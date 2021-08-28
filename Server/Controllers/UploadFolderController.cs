@@ -41,7 +41,6 @@ namespace Axle.Server.Controllers
                     string filename = Path.GetFileNameWithoutExtension(file);
                     string ext = Path.GetExtension(file);
                     if (ext.Length > 0 && _engine.CanParseDocumentType(ext.Substring(1))){
-                        Console.WriteLine("Adding", filename);
                         await _engine.AddDocument(file, filename);
                     }
                 }
