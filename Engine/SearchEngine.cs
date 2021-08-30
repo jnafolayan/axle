@@ -128,7 +128,7 @@ namespace Axle.Engine
             string lastToken = queryTokens[queryTokens.Length - 1];
             List<string> suggestions = new List<string>();
 
-            List<BigramModel> bigrams = _store.GetBigrams(lastToken);
+            List<BigramModel> bigrams = _store.GetTopNBigrams(lastToken, 5);
             foreach(BigramModel bigram in bigrams)
             {
                 if (bigram.After == "<end>")
