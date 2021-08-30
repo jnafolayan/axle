@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Axle.Engine.Database;
 using Axle.Engine.Database.Models.Index;
+using Axle.Engine.Database.Models.Autocomplete;
 using MongoDB.Driver;
 using static Axle.Engine.Indexer;
 
@@ -15,10 +16,14 @@ namespace Axle.Engine
     {
         private IMongoCollection<DocumentModel> _documents;
         private IMongoCollection<TokenModel> _invertedIndex;
+        private IMongoCollection<UnigramModel> _unigrams;
+        private IMongoCollection<BigramModel> _bigrams;
         public Store(string databaseName, string connectionURI) : base(databaseName, connectionURI)
         {
             _documents = db.GetCollection<DocumentModel>("documents");
             _invertedIndex = db.GetCollection<TokenModel>("invertedIndex");
+            _unigrams = db.GetCollection<UnigramModel>("unigramModel");
+            _bigrams = db.GetCollection<BigramModel>("bigramModel");
         }
 
         /// <summary>
@@ -124,5 +129,57 @@ namespace Axle.Engine
             var filter = Builders<DocumentModel>.Filter.Eq("IsIndexed", true);
             return _documents.CountDocumentsAsync(filter);
         }
+
+        /// <summary>
+        /// Inserts new documents into the inverted index. Creates new token entries
+        /// if they don't already exist.
+        /// </summary>
+        /// <param name="token">The token string</param>
+        /// <param name="documents">A list of token documents to push</param>
+        /// <param name="sourceMap">A mapping from source path to document id</param>
+        /// <returns></returns>
+        public void InsertOrUpdateUnigramDocuments(List<UnigramModel> documents)
+        {
+            foreach(UnigramModel document in documents)
+            {
+                var filter = Builders<UnigramModel>.Filter.Eq("Token", document.Token);
+                var update = Builders<UnigramModel>.Update.Inc("Count", document.Count);
+                _unigrams.UpdateOne(filter, update, new UpdateOptions { IsUpsert = true });
+            }
+        }
+
+        public void InsertOrUpdateBigramDocuments(List<BigramModel> documents)
+        {
+            foreach(BigramModel document in documents)
+            {
+                var filter = Builders<BigramModel>.Filter.Eq("Before", document.Before);
+                var f2 = Builders<BigramModel>.Filter.Eq("After", document.After);
+                var update = Builders<BigramModel>.Update.Inc("Count", document.Count);
+                _bigrams.UpdateOne(filter & f2, update, new UpdateOptions { IsUpsert = true });
+            }
+        }
+
+        public List<BigramModel> GetBigrams(string Before)
+        {
+            var filter = Builders<BigramModel>.Filter.Eq("Before", Before);
+            return _bigrams.Find<BigramModel>(filter).ToList();
+        }
+
+        public List<BigramModel> GetTopNBigrams(string Before, int n)
+        {
+            var filter = Builders<BigramModel>.Filter.Eq("Before", Before);
+            var sort = Builders<BigramModel>.Sort.Descending("Count");
+            var result = _bigrams.Find<BigramModel>(filter).Sort(sort).Limit(n).ToList();
+            while(result.Count < n)
+            {
+                result.Add(new BigramModel{
+                    Before = Before,
+                    After = "<end>",
+                    Count = 0
+                });
+            }
+            return result;
+        }
+         
     }
 }

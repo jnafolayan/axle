@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System;
 using System.Threading.Tasks;
 using Axle.Engine.FileParsers;
+using Axle.Engine.Database.Models.Autocomplete;
 using Porter2Stemmer;
 
 namespace Axle.Engine
@@ -17,6 +18,7 @@ namespace Axle.Engine
         private HashSet<string> _stopWords = new HashSet<string>();
         private EnglishPorter2Stemmer _stemmer = new EnglishPorter2Stemmer();
         private FileParserFactory _parserFactory;
+        private AutoComplete _autoCompleter;
 
         public Indexer()
         {
@@ -30,6 +32,18 @@ namespace Axle.Engine
         public Indexer(FileParserFactory parserFactory_, string stopWordsFileURL)
         {
             _parserFactory = parserFactory_;
+            ReadStopWords(stopWordsFileURL);
+        }
+
+        /// <summary>
+        /// Two-param constructor for the Indexer class
+        /// </summary>
+        /// <param name="parserFactory">A reference to the parser factory</param>
+        /// <param name="stopWordsFileURL">The path to the stopwords file</param>
+        public Indexer(FileParserFactory parserFactory_, AutoComplete autoCompleter_, string stopWordsFileURL)
+        {
+            _parserFactory = parserFactory_;
+            _autoCompleter = autoCompleter_;
             ReadStopWords(stopWordsFileURL);
         }
 
@@ -50,7 +64,7 @@ namespace Axle.Engine
                 _stopWords.Add(line);
             }
         }
-        public Dictionary<string, List<TokenDocument>> BuildIndex(List<string> documentURLs)
+        public BuildIndexResult BuildIndex(List<string> documentURLs)
         {
             return BuildIndex(documentURLs, (string s) => {});
         }
@@ -60,9 +74,12 @@ namespace Axle.Engine
         /// </summary>
         /// <param name="documentURLs">A list of document file paths</param>
         /// <returns>A list of (token, document_token) pairs</returns>
-        public Dictionary<string, List<TokenDocument>> BuildIndex(List<string> documentURLs, Action<string> onAdded)
+        public BuildIndexResult BuildIndex(List<string> documentURLs, Action<string> onAdded)
         {
             var tokenMap = new ConcurrentDictionary<string, List<TokenDocument>>();
+            var bigramList = new ConcurrentQueue<BigramModel>();
+            var unigramList = new ConcurrentQueue<UnigramModel>();
+
             int maxTasksPerRun = 50;
             int i = 0;
             Task[] taskArray = new Task[maxTasksPerRun];
@@ -72,13 +89,26 @@ namespace Axle.Engine
             Func<object, object> IndexFunc = (object url) =>
             {
                 var documentURL = (string)url;
-                Dictionary<string, TokenDocument> tfScores = ParseDocument(documentURL);
+                ParseDocumentResult parseDocumentResult = ParseDocument(documentURL);
+                var tfScores = parseDocumentResult.TfScores;
+                var bigrams = parseDocumentResult.AutoCompleteIndex.Bigram;
+                var unigrams = parseDocumentResult.AutoCompleteIndex.Unigram;
 
                 foreach (string token in tfScores.Keys)
                 {
                     tokenMap.GetOrAdd(token, CreateTokenDocumentList);
                     tfScores[token].SourcePath = documentURL;
                     tokenMap[token].Add(tfScores[token]);
+                }
+
+                foreach (BigramModel bigram in bigrams)
+                {
+                    bigramList.Enqueue(bigram);
+                }
+
+                foreach (UnigramModel unigram in unigrams)
+                {
+                    unigramList.Enqueue(unigram);
                 }
 
                 onAdded(documentURL);
@@ -105,15 +135,19 @@ namespace Axle.Engine
                 Task.WaitAll(taskArray);
             }
 
-            return new Dictionary<string, List<TokenDocument>>(tokenMap);
+            return new BuildIndexResult{
+                TokenMap = new Dictionary<string, List<TokenDocument>>(tokenMap),
+                Bigrams = new List<BigramModel>(bigramList),
+                Unigrams = new List<UnigramModel>(unigramList)
+            };
         }
 
         /// <summary>
         /// Parses a single document file
         /// </summary>
         /// <param name="documentURL">The path to the document</param>
-        /// <returns>(token, document_token) pairs</returns>
-        public Dictionary<string, TokenDocument> ParseDocument(string documentURL)
+        /// <returns><see cref="ParseDocumentResult">ParseDocumentResult</see></returns>
+        public ParseDocumentResult ParseDocument(string documentURL)
         {
             // fetch the appropriate parser for the document
             string ext = Path.GetExtension(documentURL).Substring(1);
@@ -121,12 +155,16 @@ namespace Axle.Engine
 
             // parse the text
             string text = parser.ParseLocalFile(documentURL).ToLower();
+            var autoCompleteIndex = _autoCompleter.Index(text);
             int termsCount;
 
             Dictionary<string, int> wordFreqs = CountWordFrequencies(text, out termsCount);
             Dictionary<string, TokenDocument> tfScores = CalculateTFScores(wordFreqs, termsCount);
 
-            return tfScores;
+            return new ParseDocumentResult{
+                AutoCompleteIndex = autoCompleteIndex,
+                TfScores = tfScores
+            };
         }
 
         /// <summary>
@@ -258,6 +296,22 @@ namespace Axle.Engine
             public decimal TFScore { get; set; }
             public double Count { get; set; }
             public string SourcePath { get; set; }
+        }
+
+        /// <summary>
+        /// Contains information about a parsed document
+        /// </summary>
+        public class ParseDocumentResult
+        {
+            public AutoCompleteIndex AutoCompleteIndex { get; set; }
+            public Dictionary<string, TokenDocument> TfScores { get; set; }
+        }
+
+        public class BuildIndexResult
+        {
+            public Dictionary<string, List<TokenDocument>> TokenMap { get; set; }
+            public List<BigramModel> Bigrams;
+            public List<UnigramModel> Unigrams;
         }
     }
 }

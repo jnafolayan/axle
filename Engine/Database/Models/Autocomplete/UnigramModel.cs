@@ -6,7 +6,7 @@ namespace Axle.Engine.Database.Models.Autocomplete
     public class UnigramModel
     {
         [BsonId]
-        public int Token { get; internal set;}
-        public int Count { get; internal set;}
+        public string Token { get; internal set;}
+        public long Count { get; internal set;}
     }
 }
