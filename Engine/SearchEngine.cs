@@ -131,6 +131,9 @@ namespace Axle.Engine
             List<BigramModel> bigrams = _store.GetTopNBigrams(lastToken, 5);
             foreach (BigramModel bigram in bigrams)
             {
+                queryTokens[queryTokens.Length - 1] = bigram.Before;
+                query = String.Join(" ", queryTokens);
+
                 if (bigram.After == "<end>")
                     suggestions.Add(query);
                 else
