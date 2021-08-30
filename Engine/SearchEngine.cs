@@ -1,9 +1,12 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Axle.Engine.Database.Models.Index;
+using Axle.Engine.Database.Models.Autocomplete;
 using Axle.Engine.FileParsers;
+using Axle.Engine;
 using Microsoft.Extensions.Logging;
 
 namespace Axle.Engine
@@ -17,11 +20,13 @@ namespace Axle.Engine
         private Indexer _indexer;
         private FileParserFactory _parserFactory;
         private Store _store;
+        private AutoComplete _autoCompleter;
         public SearchEngine(SearchEngineConfig config, ILogger<SearchEngine> logger)
         {
             _logger = logger;
             _parserFactory = new FileParserFactory();
-            _indexer = new Indexer(_parserFactory, config.StopWordsFilePath);
+            _autoCompleter = new AutoComplete(_store);
+            _indexer = new Indexer(_parserFactory, _autoCompleter, config.StopWordsFilePath);
             _store = new Store(config.DatabaseName, config.DatabaseConnectionURI);
 
             ConfigureParserFactory();
@@ -106,6 +111,52 @@ namespace Axle.Engine
         }
 
         /// <summary>
+        /// Executes autocomplete query agains index
+        /// </summary>
+        /// <param name="query">The query</param>
+        /// <returns>A list of search results</returns>
+        public List<string> AutoComplete(string query)
+        {
+            // Get all document that have the last element in the query
+            // as their Before field
+            // Continuously add terms to those results until <end> is reached or the
+            // required depth has been reached. 
+
+            // Need a function that can run a query down
+            
+            string[] queryTokens = Regex.Split(query, @"\s");
+            string lastToken = queryTokens[queryTokens.Length - 1];
+            List<string> suggestions = new List<string>();
+
+            List<BigramModel> bigrams = _store.GetBigrams(lastToken);
+            foreach(BigramModel bigram in bigrams)
+            {
+                if (bigram.After == "<end>")
+                    suggestions.Add(query);
+                else
+                    suggestions.Add(completeQuery(bigram.After, query + " " + bigram.After, 6));
+            }
+            
+
+            return suggestions;
+        }
+
+        private string completeQuery(string lastToken, string query, int depth)
+        {
+            for(int i = 0; i < depth; i++)
+            {
+                var nextToken = _store.GetTopNBigrams(lastToken, 1)[0].After;
+                lastToken = nextToken;
+                if(nextToken != "<end>")
+                    query += " " + nextToken;
+                else
+                    return query;
+            }
+            return query;
+        }
+
+
+        /// <summary>
         /// Checks if the engine can parse a document of the specified type
         /// </summary>
         /// <param name="type">The document type (extension)</param>
@@ -129,9 +180,14 @@ namespace Axle.Engine
 
             // build small index from these documents
             watch.Start();
-            var index = _indexer.BuildIndex(documentURLs);
+            var buildIndexResult = _indexer.BuildIndex(documentURLs);
             watch.Stop();
             _logger.LogDebug($"Built new index in {watch.ElapsedMilliseconds}ms ({documents.Count} documents).");
+
+            var index = buildIndexResult.TokenMap;
+            var bigramList = buildIndexResult.Bigrams;
+            var unigramList = buildIndexResult.Unigrams;
+
 
             // generate a map from file path to document guid
             var sourcePathToId = new Dictionary<string, Guid>();
@@ -149,6 +205,10 @@ namespace Axle.Engine
 
             // mark new documents as indexed
             Utils.RunTasks<DocumentModel>(documents, 10, (document) => _store.MarkDocumentAsIndexed(document));
+
+            // Add to autocomplete index
+            _store.InsertOrUpdateUnigramDocuments(unigramList);
+            _store.InsertOrUpdateBigramDocuments(bigramList);
         }
 
         /// <summary>

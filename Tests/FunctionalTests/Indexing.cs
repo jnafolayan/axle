@@ -75,6 +75,7 @@ namespace Axle.FunctionalTests.Indexing
             Assert.Equal((decimal)1 / 5, tfScores["world"].TFScore);
         }
 
+        /*
         [Fact]
         public void ShouldBuildIndex()
         {
@@ -95,5 +96,6 @@ namespace Axle.FunctionalTests.Indexing
             Assert.NotEmpty(index["lorem"]);
             Assert.NotEqual(0, index["lorem"][0].TFScore);
         }
+        */
     }
 }
