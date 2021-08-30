@@ -61,8 +61,6 @@ namespace Axle.Server.Controllers
             if (validationResponse != null)
                 return BadRequest(validationResponse);
 
-            // TODO: If type is web url, download the associated file content
-
             // Save the document if one exists and get the details
             List<UploadError> errors = new List<UploadError>();
             if (uploadType == "document")
@@ -124,7 +122,7 @@ namespace Axle.Server.Controllers
                         continue;
                     }
 
-                    await saveDocumentToDisk(document);
+                    await saveDocumentToDisk(document, uploadInput.Title, uploadInput.Description);
                 }
             }
             return errors;
@@ -152,14 +150,14 @@ namespace Axle.Server.Controllers
             }
 
             string fileName = Utils.GenerateGUID(11) + "." + extension;
-            string filePath = Path.GetFullPath("./wwroot/uploads/" + fileName);
+            string filePath = Path.GetFullPath("./wwwroot/uploads/" + fileName);
             _client.DownloadFile(uploadInput.Link, "./wwwroot/uploads/" + fileName);
-            await _engine.AddDocument(filePath, "", "");
+            await _engine.AddDocument(filePath, Path.GetFileNameWithoutExtension(uploadInput.Link), "");
 
             return errors;
         }
 
-        private async Task<string[]> saveDocumentToDisk(IFormFile document, String title = "", String description = "")
+        private async Task<string[]> saveDocumentToDisk(IFormFile document, String title, String description)
         {
             string guid = Utils.GenerateGUID(11);
             var extension = Path.GetExtension(document.FileName);
@@ -168,7 +166,7 @@ namespace Axle.Server.Controllers
             string filePath = Path.Combine(uploadDir, newFileName);
 
             if (title is null)
-                title = document.FileName;
+                title = Path.GetFileNameWithoutExtension(document.FileName);
             
             if (description is null)
                 description = "";
