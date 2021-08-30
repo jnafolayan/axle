@@ -138,7 +138,9 @@ namespace Axle.Server.Controllers
             request.Method = "HEAD";
 
             string mimetype = request.GetResponse().ContentType;
-            string extension = MimeTypeMap.GetExtension(mimetype);
+            mimetype = mimetype.Split(";")[0];
+
+            string extension = MimeTypeMap.GetExtension(mimetype, false);
             extension = extension.Substring(1);
 
             if(!_engine.CanParseDocumentType(extension)){

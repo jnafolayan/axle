@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, useLocation } from "react-router-dom";
+import Container from "../components/Container";
 import Header from "../components/Header";
 import Main from "../components/Main";
 import SearchDocument from "../components/SearchDocument";
@@ -63,6 +64,8 @@ export default function SearchView() {
     if (page < 1 || page > pages.length) return;
     if (page === currentPage && !forceChange) return;
 
+    console.log({ page })
+
     const start = (page - 1) * MAX_RESULTS_PER_PAGE;
     const end = start + MAX_RESULTS_PER_PAGE;
 
@@ -75,14 +78,16 @@ export default function SearchView() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const q = params.get("q");
-    dispatch(updateQuery(q || ""));
-    if (q) {
+    let q = params.get("q") || "";
+    q = q.trim();
+    if (!q) history.push("/");
+    else {
+      dispatch(updateQuery(q));
       dispatch(executeQuery(q));
 
       // save query to disk
       storage.saveQuery(q);
-    } else history.push("/");
+    }
   }, [location, history, dispatch]);
 
   useEffect(() => {
@@ -113,7 +118,7 @@ export default function SearchView() {
   }, [searchResult]);
 
   return (
-    <div className="max-w-5xl mx-auto py-3 px-4">
+    <Container>
       <Header />
 
       <div className="my-4 h-1 bg-gray-800"></div>
@@ -142,16 +147,16 @@ export default function SearchView() {
               <li>Try more general keywords.</li>
             </ul>
           </div>
-        ) : currentDocuments.length > 0 ? (
+        ) : searchResult && currentDocuments.length > 0 ? (
           <div>
             <p className="text-gray-500 text-sm mb-4">
-              About {formatNumber(currentDocuments.length)} results (
+              About {formatNumber(searchResult.documents.length)} results (
               {formatElapsed(searchResult?.speed || 0)})
             </p>
 
             <div className="space-y-8">
-              {currentDocuments.map((doc) => (
-                <SearchDocument key={doc.link} value={doc} />
+              {currentDocuments.map((doc, i) => (
+                <SearchDocument key={i+doc.link} value={doc} />
               ))}
             </div>
 
@@ -187,7 +192,7 @@ export default function SearchView() {
           </div>
         ) : null}
       </Main>
-    </div>
+    </Container>
   );
 }
 
