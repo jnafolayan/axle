@@ -90,10 +90,10 @@ namespace Axle.Engine
             });
 
             // return only the top 10 results
-            relevantDocuments = relevantDocuments.GetRange(0, Math.Min(10, relevantDocuments.Count));
+            relevantDocuments = relevantDocuments.GetRange(0, Math.Min(50, relevantDocuments.Count));
 
             // fetch all relevant documents from the database
-            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 10, (guid) => _store.GetDocument(guid));
+            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 500, (guid) => _store.GetDocument(guid));
 
             foreach (var document in documents)
             {
@@ -123,31 +123,31 @@ namespace Axle.Engine
             // required depth has been reached. 
 
             // Need a function that can run a query down
-            
+
             string[] queryTokens = Regex.Split(query, @"\s");
             string lastToken = queryTokens[queryTokens.Length - 1];
             List<string> suggestions = new List<string>();
 
-            List<BigramModel> bigrams = _store.GetBigrams(lastToken);
-            foreach(BigramModel bigram in bigrams)
+            List<BigramModel> bigrams = _store.GetTopNBigrams(lastToken, 5);
+            foreach (BigramModel bigram in bigrams)
             {
                 if (bigram.After == "<end>")
                     suggestions.Add(query);
                 else
                     suggestions.Add(completeQuery(bigram.After, query + " " + bigram.After, 6));
             }
-            
+
 
             return suggestions;
         }
 
         private string completeQuery(string lastToken, string query, int depth)
         {
-            for(int i = 0; i < depth; i++)
+            for (int i = 0; i < depth; i++)
             {
                 var nextToken = _store.GetTopNBigrams(lastToken, 1)[0].After;
                 lastToken = nextToken;
-                if(nextToken != "<end>")
+                if (nextToken != "<end>")
                     query += " " + nextToken;
                 else
                     return query;
