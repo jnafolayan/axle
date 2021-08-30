@@ -50,7 +50,7 @@ export const executeQuery = createAsyncThunk(
     try {
       const results = await api.search.execute(query);
       return results;
-    } catch (error) {
+    } catch (error:any) {
       console.log({error});
       return thunkApi.rejectWithValue(error.response);
     } finally {

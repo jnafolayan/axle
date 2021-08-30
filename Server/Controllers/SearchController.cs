@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Axle.Engine;
@@ -22,6 +23,7 @@ namespace Axle.Server.Controllers
         public async Task<ActionResult<SearchResult>> Search([FromQuery] SearchQuery searchQuery)
         {
 
+            _engine.IndexAllDocuments();
             // Make sure a query is present
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
@@ -31,11 +33,26 @@ namespace Axle.Server.Controllers
             var results = await _engine.ExecuteQuery(searchQuery.Query);
             watch.Stop();
             long elapsed = watch.ElapsedMilliseconds;
+
+            List<SearchResultItem> newResults = results.ConvertAll<SearchResultItem>((resultItem) => {
+                return new SearchResultItem{
+                    Title = resultItem.Title,
+                    Description = resultItem.Description,
+                    Link = extractStaticFileUrl(resultItem.Link)
+                };
+            });
+
             return new SearchResult
             {
                 Speed = elapsed,
-                Documents = results,
+                Documents = newResults,
             };
+        }
+
+        public String extractStaticFileUrl(String absoluteUrl)
+        {
+            String filename = Path.GetFileNameWithoutExtension(absoluteUrl) + Path.GetExtension(absoluteUrl);
+            return "/uploads/" + filename;
         }
     }
 
