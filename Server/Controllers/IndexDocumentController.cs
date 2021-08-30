@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Axle.Engine;
 
 namespace Axle.Server.Controllers
@@ -14,9 +16,11 @@ namespace Axle.Server.Controllers
         }
 
         [HttpGet]
-        public void IndexDocument()
+        public ActionResult IndexDocument()
         {
-            _engine.IndexAllDocuments()
+            _engine.IndexAllDocuments();
+            return Ok();
+
         }
     }
 }
