@@ -1,2 +1,7 @@
-obj
-bin
+.vscode/
+bin/
+obj/
+Debug/
+Release/
+wwwroot/
+*.lock
