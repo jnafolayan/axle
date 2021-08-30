@@ -26,7 +26,7 @@ export default function History() {
       const date = d.toDateString();
       const [left, timeOfDay] = d.toLocaleTimeString().split(" ");
       const [h, m] = left.split(":");
-      const time = [h, m].join(":") + " " + timeOfDay;
+      const time = ([h, m].join(":") + " " + (timeOfDay || "")).trim();
 
       if (!(date in map)) {
         map[date] = [];

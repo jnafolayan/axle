@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 export default function Footer() {
   return (
     <footer className="w-full">
@@ -8,6 +6,7 @@ export default function Footer() {
         <a
           href="https://github.com/jnafolayan/axle"
           target="_blank"
+          rel="noreferrer"
           className="text-primary-400"
         >
           Github

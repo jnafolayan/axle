@@ -51,7 +51,7 @@ namespace Axle.Engine
         {
             _parserFactory = parserFactory_;
         }
-        
+
         /// <summary>
         /// Reads the stopwords file into memory
         /// </summary>
@@ -66,7 +66,7 @@ namespace Axle.Engine
         }
         public BuildIndexResult BuildIndex(List<string> documentURLs)
         {
-            return BuildIndex(documentURLs, (string s) => {});
+            return BuildIndex(documentURLs, (string s) => { });
         }
 
         /// <summary>
@@ -90,6 +90,8 @@ namespace Axle.Engine
             {
                 var documentURL = (string)url;
                 ParseDocumentResult parseDocumentResult = ParseDocument(documentURL);
+                if (parseDocumentResult is null) return null;
+
                 var tfScores = parseDocumentResult.TfScores;
                 var bigrams = parseDocumentResult.AutoCompleteIndex.Bigram;
                 var unigrams = parseDocumentResult.AutoCompleteIndex.Unigram;
@@ -135,7 +137,8 @@ namespace Axle.Engine
                 Task.WaitAll(taskArray);
             }
 
-            return new BuildIndexResult{
+            return new BuildIndexResult
+            {
                 TokenMap = new Dictionary<string, List<TokenDocument>>(tokenMap),
                 Bigrams = new List<BigramModel>(bigramList),
                 Unigrams = new List<UnigramModel>(unigramList)
@@ -154,17 +157,26 @@ namespace Axle.Engine
             FileParserBase parser = _parserFactory.GetParser(ext);
 
             // parse the text
-            string text = parser.ParseLocalFile(documentURL).ToLower();
-            var autoCompleteIndex = _autoCompleter.Index(text);
-            int termsCount;
+            try
+            {
+                string text = parser.ParseLocalFile(documentURL).ToLower();
+                var autoCompleteIndex = _autoCompleter.Index(text);
+                int termsCount;
 
-            Dictionary<string, int> wordFreqs = CountWordFrequencies(text, out termsCount);
-            Dictionary<string, TokenDocument> tfScores = CalculateTFScores(wordFreqs, termsCount);
+                Dictionary<string, int> wordFreqs = CountWordFrequencies(text, out termsCount);
+                Dictionary<string, TokenDocument> tfScores = CalculateTFScores(wordFreqs, termsCount);
 
-            return new ParseDocumentResult{
-                AutoCompleteIndex = autoCompleteIndex,
-                TfScores = tfScores
-            };
+                return new ParseDocumentResult
+                {
+                    AutoCompleteIndex = autoCompleteIndex,
+                    TfScores = tfScores
+                };
+            }
+            catch (Exception)
+            {
+                // completely suppress the exception hehe
+                return null;
+            }
         }
 
         /// <summary>
@@ -227,7 +239,7 @@ namespace Axle.Engine
             trimmed = RemovePunctuation(trimmed);
             // remove special characters
             trimmed = RemoveSpecialCharacters(trimmed);
-            
+
             var terms = new List<string>(Regex.Split(trimmed, @"\s"));
             // remove stop words
             // terms = RemoveStopWords(terms);

@@ -13,15 +13,16 @@ namespace Axle.Server.Controllers
         {
             _engine = engine;
         }
-        [HttpPost]
-        public ActionResult<AutoCompleteResult> Autocomplete(SearchQuery searchQuery)
+        [HttpGet]
+        public ActionResult<AutoCompleteResult> Autocomplete([FromQuery] SearchQuery searchQuery)
         {
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
 
             List<string> suggestions = _engine.AutoComplete(searchQuery.Query);
 
-            return new AutoCompleteResult{
+            return new AutoCompleteResult
+            {
                 Query = searchQuery.Query,
                 Suggestions = suggestions
             };

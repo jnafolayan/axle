@@ -18,7 +18,7 @@ namespace Axle.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UploadResponse>> UploadFolder([FromBody] UploadFolderQuery uploadFolderQuery)
+        public async Task<ActionResult<UploadResponse>> UploadFolder([FromForm] UploadFolderQuery uploadFolderQuery)
         {
             // Make sure the directory exists
             // Recusively add the documents in the directory to the engine
