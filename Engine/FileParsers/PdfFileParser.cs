@@ -24,17 +24,18 @@ namespace Axle.Engine.FileParsers
                 throw new FileNotFoundException($"File not found: {filePath}");
             }
 
-            var pdfDocument = new PdfDocument(new PdfReader(filePath));
+            PdfReader pdfReader = new PdfReader(filePath);
+            PdfDocument pdfDoc = new PdfDocument(pdfReader);
             StringBuilder processed = new StringBuilder();
-            for (int i = 1; i <= pdfDocument.GetNumberOfPages() ; i++)
+            for (int page = 1; page <= pdfDoc.GetNumberOfPages(); page++)
             {
-                var strategy = new LocationTextExtractionStrategy();
-                var page = pdfDocument.GetPage(i);
-                var text = PdfTextExtractor.GetTextFromPage(page, strategy);
-                processed.Append(text);
+                ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
+                string pageContent = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page), strategy);
+                processed.Append(pageContent);
                 processed.Append("\n");
             }
-            pdfDocument.Close();
+            pdfDoc.Close();
+            pdfReader.Close();
             return Convert.ToString(processed);
         }
     }

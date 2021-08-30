@@ -41,6 +41,15 @@ namespace Axle.FunctionalTests.FileParsers
 
             Assert.NotEmpty(contents);
         }
+        [Fact]
+        public void ShouldParsePDFFile()
+        {
+            var filePath = GetResourcePath("file.pdf");
+            var pdfParser = new PdfFileParser();
+            var contents = pdfParser.ParseLocalFile(filePath);
+
+            Assert.NotEmpty(contents);
+        }
 
         [Fact]
         public void ShouldParseHTMLFile()
