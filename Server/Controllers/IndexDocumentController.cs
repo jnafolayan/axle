@@ -20,7 +20,6 @@ namespace Axle.Server.Controllers
         {
             _engine.IndexAllDocuments();
             return Ok();
-
         }
     }
 }
