@@ -28,6 +28,14 @@ namespace Axle
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000");
+                });
+            });
+
             services.Configure<SearchEngineConfig>(
         Configuration.GetSection(nameof(SearchEngineConfig)));
 
@@ -38,7 +46,8 @@ namespace Axle
 
             services.AddSingleton<SearchEngine>();
 
-            services.AddCronJob<IndexingCronJob>(config => {
+            services.AddCronJob<IndexingCronJob>(config =>
+            {
                 config.TimeZoneInfo = TimeZoneInfo.Utc;
                 config.CronExpression = @"0 */1 * * *";
             });
@@ -55,6 +64,8 @@ namespace Axle
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseStaticFiles();
 

@@ -54,25 +54,18 @@ namespace Axle.Engine
             List<string> terms = _indexer.PreprocessText(query);
             if (terms.Count == 0) return result;
 
-            var tasks = new Task<TokenModel>[terms.Count];
-            for (int i = 0; i < terms.Count; i++)
-            {
-                tasks[i] = _store.GetToken(terms[i]);
-            }
-
-            Task.WaitAll(tasks);
+            // fetch all relevant tokens
+            var tokens = Utils.RunTasks<string, TokenModel>(terms, 2, (term) => _store.GetToken(term));
 
             long totalDocuments = await _store.CountIndexedDocuments();
 
             // accumulate scores for relevant documents
             var scores = new Dictionary<Guid, decimal>();
-            foreach (var task in tasks)
+            foreach (var tokenObject in tokens)
             {
-                TokenModel tokenObject = task.Result;
                 if (tokenObject is null) continue;
 
-                var idf = (decimal)(1 + Math.Log(totalDocuments / tokenObject.ContainingDocuments.Count));
-
+                var idf = (decimal)(1 + Math.Log((double)totalDocuments / (tokenObject.ContainingDocuments.Count + 1)));
                 decimal tf;
                 foreach (var document in tokenObject.ContainingDocuments)
                 {
@@ -95,22 +88,17 @@ namespace Axle.Engine
             relevantDocuments = relevantDocuments.GetRange(0, Math.Min(10, relevantDocuments.Count));
 
             // fetch all relevant documents from the database
-            var documentsTasks = new Task<DocumentModel>[relevantDocuments.Count];
-            for (int i = 0; i < relevantDocuments.Count; i++)
-            {
-                documentsTasks[i] = _store.GetDocument(relevantDocuments[i]);
-            }
+            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 10, (guid) => _store.GetDocument(guid));
 
-            Task.WaitAll(documentsTasks);
-
-            foreach (var task in documentsTasks)
+            foreach (var document in documents)
             {
-                if (task.Result is null) continue;
+                if (document is null) continue;
+
                 result.Add(new SearchResultItem
                 {
-                    Link = task.Result.SourcePath,
-                    Title = task.Result.Title,
-                    Description = task.Result.Description
+                    Link = document.SourcePath,
+                    Title = document.Title,
+                    Description = document.Description
                 });
             }
 
@@ -135,42 +123,32 @@ namespace Axle.Engine
         {
             var watch = new Stopwatch();
 
+            // fetch all new documents
             List<DocumentModel> documents = _store.GetAllRedDocuments();
             var documentURLs = documents.ConvertAll<string>(doc => doc.SourcePath);
 
+            // build small index from these documents
             watch.Start();
             var index = _indexer.BuildIndex(documentURLs);
             watch.Stop();
             _logger.LogDebug($"Built new index in {watch.ElapsedMilliseconds}ms ({documents.Count} documents).");
 
+            // generate a map from file path to document guid
             var sourcePathToId = new Dictionary<string, Guid>();
             for (int k = 0; k < documents.Count; k++)
             {
                 sourcePathToId[documentURLs[k]] = documents[k].Id;
             }
 
-            var tasks = new Task[index.Count];
-            var errors = new List<string>();
-            int i = 0;
-
+            // merge new small index with main index
             watch.Start();
-            foreach (var token in index)
-            {
-                // TODO: handle error
-                tasks[i++] = _store.UpsertTokenDocuments(token.Key, token.Value, sourcePathToId);
-            }
-            Task.WaitAll(tasks);
+            var indexKeysList = new List<string>(index.Keys);
+            Utils.RunTasks<string>(indexKeysList, 10, (key) => _store.UpsertTokenDocuments(key, index[key], sourcePathToId));
             watch.Stop();
             _logger.LogDebug($"Updated the index in {watch.ElapsedMilliseconds}ms.");
 
-            i = 0;
-            tasks = new Task[documents.Count];
-            foreach (var document in documents)
-            {
-                // TODO: handle error
-                tasks[i++] = _store.SetDocumentAsIndexed(document);
-            }
-            Task.WaitAll(tasks);
+            // mark new documents as indexed
+            Utils.RunTasks<DocumentModel>(documents, 10, (document) => _store.MarkDocumentAsIndexed(document));
         }
 
         /// <summary>

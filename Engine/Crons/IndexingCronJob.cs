@@ -18,7 +18,7 @@ namespace Axle.Engine.Crons
 
         public override Task DoWork(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting indexing at {0}.", DateTime.UtcNow);
+            _logger.LogInformation("Starting indexing at {0}.", DateTime.Now);
             return Task.Run(() => _engine.IndexAllDocuments(), cancellationToken);
         }
     }
