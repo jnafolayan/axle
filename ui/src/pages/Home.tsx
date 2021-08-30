@@ -1,6 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import Footer from "../components/Footer";
 import Search from "../components/Search";
 import ClockIcon from "../icons/ClockIcon";
 
@@ -39,7 +40,9 @@ export default function Home() {
           </button>
         </div>
       </form>
-      <div></div>
+      <div>
+        <Footer />
+      </div>
     </div>
   );
 }

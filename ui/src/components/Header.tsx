@@ -7,12 +7,12 @@ import Search from "./Search";
 export default function Header() {
   const query = useSelector(selectQuery);
   const dispatch = useDispatch();
-  
+
   const onQueryChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLInputElement;
     dispatch(updateQuery(target.value));
   };
-  
+
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center justify-between md:space-x-4 w-full md:w-4/5">
@@ -20,7 +20,7 @@ export default function Header() {
           to="/"
           className="text-primary-400 whitespace-nowrap hidden md:block md:text-2xl"
         >
-          <span className="text-gray-200 text-base md:text-xl">ask</span> Axle
+          Axle
         </Link>
         <form
           action="/search"
@@ -28,13 +28,7 @@ export default function Header() {
           className="w-full"
           autoComplete="off"
         >
-          <Search
-            name="q"
-            query={query}
-            className="h-10 md:h-12"
-            onChange={onQueryChange}
-            required
-          />
+          <Search name="q" query={query} onChange={onQueryChange} required />
         </form>
       </div>
       <div className="hidden md:block">

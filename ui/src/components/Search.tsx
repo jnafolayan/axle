@@ -18,7 +18,7 @@ export default function Search(props: TSearchProps) {
         name={name}
         value={query}
         className={clsx(
-          "bg-transparent text-gray-200 border-2 border-gray-200 py-2 pl-4 pr-14 rounded-full w-full outline-none hover:shadow-sm",
+          "bg-transparent text-gray-200 border-2 border-gray-200 h-10 md:h-12 py-2 pl-4 pr-14 rounded-full w-full outline-none hover:shadow-sm",
           className
         )}
         onChange={onChange}

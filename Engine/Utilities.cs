@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Axle.Engine
 {
@@ -72,6 +73,82 @@ namespace Axle.Engine
                 list[i] = temp;
             }
             return list;
+        }
+
+        /// <summary>
+        /// Runs a work function across a list of items, allowing control over
+        /// execution concurrency.
+        /// </summary>
+        /// <param name="items">The list of items</param>
+        /// <param name="maxTasks">The maximum number of tasks to be run concurrently</param>
+        /// <param name="work">The work function</param>
+        /// <typeparam name="T">The datatype of items</typeparam>
+        /// <typeparam name="U">The datatype returned from the work function</typeparam>
+        /// <returns>A list of objects produced</returns>
+        public static List<U> RunTasks<T, U>(List<T> items, int maxTasks, Func<T, Task<U>> work)
+        {
+            var tasks = new Task<U>[maxTasks];
+            var result = new List<U>(items.Count);
+            int counter = 0;
+
+            while (counter < items.Count)
+            {
+                int stop = Math.Min(items.Count, counter + maxTasks);
+                int k = 0;
+
+                int batchSize = stop - counter;
+                if (batchSize < maxTasks)
+                {
+                    tasks = new Task<U>[batchSize];
+                }
+
+                for (; counter < stop; counter++)
+                {
+                    tasks[k++] = work(items[counter]);
+                }
+
+                Task.WaitAll(tasks);
+
+                for (int i = 0; i < tasks.Length; i++)
+                {
+                    result.Add(tasks[i].Result);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Runs a work function across a list of items, allowing control over
+        /// execution concurrency.
+        /// </summary>
+        /// <param name="items">The list of items</param>
+        /// <param name="maxTasks">The maximum number of tasks to be run concurrently</param>
+        /// <param name="work">The work function</param>
+        /// <typeparam name="T">The datatype of items</typeparam>
+        public static void RunTasks<T>(List<T> items, int maxTasks, Func<T, Task> work)
+        {
+            var tasks = new Task[maxTasks];
+            int counter = 0;
+
+            while (counter < items.Count)
+            {
+                int stop = Math.Min(items.Count, counter + maxTasks);
+                int k = 0;
+
+                int batchSize = stop - counter;
+                if (batchSize < maxTasks)
+                {
+                    tasks = new Task[batchSize];
+                }
+
+                for (; counter < stop; counter++)
+                {
+                    tasks[k++] = work(items[counter]);
+                }
+
+                Task.WaitAll(tasks);
+            }
         }
     }
 }

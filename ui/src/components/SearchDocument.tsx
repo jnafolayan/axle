@@ -7,10 +7,18 @@ export type TSearchDocumentProps = {
 
 export default function SearchDocument(props: TSearchDocumentProps) {
   const { value: doc } = props;
+  const title = doc.title || "Untitled";
+  const description = doc.description || "No description";
   return (
     <div className="w-full">
-      <Link to={doc.link}>{doc.title}</Link>
-      <p>{doc.description}</p>
+      <Link
+        to={doc.link}
+        target="_blank"
+        className="text-base md:text-xl text-primary-500 hover:underline truncate w-full"
+      >
+        {title}
+      </Link>
+      <p className="text-sm lg:text-base text-gray-200">{description}</p>
     </div>
   );
 }

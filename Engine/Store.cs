@@ -60,7 +60,7 @@ namespace Axle.Engine
         /// </summary>
         /// <param name="document">The document</param>
         /// <returns></returns>
-        public Task<UpdateResult> SetDocumentAsIndexed(DocumentModel document)
+        public Task<UpdateResult> MarkDocumentAsIndexed(DocumentModel document)
         {
             var filter = Builders<DocumentModel>.Filter.Eq("Id", document.Id);
             var update = Builders<DocumentModel>.Update
