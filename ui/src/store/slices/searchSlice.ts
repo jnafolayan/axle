@@ -76,7 +76,7 @@ export const searchSlice = createSlice({
       state.loading = false;
     },
     [updateQuery.type]: (state, action: PayloadAction<string>) => {
-      state.query = action.payload;
+      state.query = action.payload.trim();
     },
     [setLoading.type]: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;

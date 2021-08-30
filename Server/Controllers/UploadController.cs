@@ -65,7 +65,7 @@ namespace Axle.Server.Controllers
 
             // Save the document if one exists and get the details
             List<UploadError> errors = new List<UploadError>();
-            if (uploadType == "documents")
+            if (uploadType == "document")
                 errors = await UploadDocuments(uploadInput, errors);
             else if (uploadType == "url")
                 errors = await UploadWebUrl(uploadInput, errors);

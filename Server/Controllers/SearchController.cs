@@ -25,6 +25,8 @@ namespace Axle.Server.Controllers
             // Make sure a query is present
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
+            
+            _engine.IndexAllDocuments();
 
             var watch = new Stopwatch();
             watch.Start();
