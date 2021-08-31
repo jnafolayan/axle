@@ -28,13 +28,12 @@ export default function SearchView() {
   const searchResult = useSelector(selectSearchResult);
   const dispatch = useDispatch();
 
+  const [currentQuery, setCurrentQuery] = useState("");
   const [pages, setPages] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(-1);
   const [currentDocuments, setCurrentDocuments] = useState<
     TSearchResultDocument[]
   >([]);
-
-  console.log({ searchResult, loading });
 
   const formatNumber = (num: number) => {
     const numStr = String(num);
@@ -93,6 +92,8 @@ export default function SearchView() {
   useEffect(() => {
     if (searchResult) {
       const { documents } = searchResult;
+      setCurrentQuery(query);
+
       let numPages = Math.ceil(documents.length / MAX_RESULTS_PER_PAGE);
       numPages = Math.min(numPages, MAX_PAGES_VISIBLE);
 
@@ -135,7 +136,7 @@ export default function SearchView() {
           <div className="py-12">
             <p>
               Your search -{" "}
-              <span className="text-white font-bold">{query}</span> - did not
+              <span className="text-white font-bold">{currentQuery}</span> - did not
               match any documents.
             </p>
             <h5 className="mt-4">Suggestions</h5>

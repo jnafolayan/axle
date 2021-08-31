@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import ClockIcon from "../icons/ClockIcon";
 import {
   chooseCompletion,
@@ -16,6 +16,7 @@ export default function Header() {
   const query = useSelector(selectQuery);
   const completions = useSelector(selectCompletions);
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const onQueryChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLInputElement;
@@ -25,6 +26,7 @@ export default function Header() {
 
   const pickSuggestion = (s: string) => {
     dispatch(chooseCompletion(s));
+    history.push(`/search?q=${s}`);
   };
   
   useEffect(() => {
