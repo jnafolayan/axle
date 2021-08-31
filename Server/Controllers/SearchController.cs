@@ -22,12 +22,11 @@ namespace Axle.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<SearchResult>> Search([FromQuery] SearchQuery searchQuery)
         {
-
             _engine.IndexAllDocuments();
             // Make sure a query is present
             if (searchQuery is null || searchQuery.Query is null)
                 return BadRequest();
-            
+
             _engine.IndexAllDocuments();
 
             var watch = new Stopwatch();
@@ -36,8 +35,10 @@ namespace Axle.Server.Controllers
             watch.Stop();
             long elapsed = watch.ElapsedMilliseconds;
 
-            List<SearchResultItem> newResults = results.ConvertAll<SearchResultItem>((resultItem) => {
-                return new SearchResultItem{
+            List<SearchResultItem> newResults = results.ConvertAll<SearchResultItem>((resultItem) =>
+            {
+                return new SearchResultItem
+                {
                     Title = resultItem.Title,
                     Description = resultItem.Description,
                     Link = extractStaticFileUrl(resultItem.Link)

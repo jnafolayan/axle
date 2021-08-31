@@ -87,7 +87,7 @@ namespace Axle.Engine
         /// <returns>A list of objects produced</returns>
         public static List<U> RunTasks<T, U>(List<T> items, int maxTasks, Func<T, Task<U>> work)
         {
-            var tasks = new Task<U>[maxTasks];
+            Task<U>[] tasks = new Task<U>[0];
             var result = new List<U>(items.Count);
             int counter = 0;
 
@@ -97,10 +97,8 @@ namespace Axle.Engine
                 int k = 0;
 
                 int batchSize = stop - counter;
-                if (batchSize < maxTasks)
-                {
+                if (batchSize != tasks.Length)
                     tasks = new Task<U>[batchSize];
-                }
 
                 for (; counter < stop; counter++)
                 {
@@ -128,7 +126,7 @@ namespace Axle.Engine
         /// <typeparam name="T">The datatype of items</typeparam>
         public static void RunTasks<T>(List<T> items, int maxTasks, Func<T, Task> work)
         {
-            var tasks = new Task[maxTasks];
+            var tasks = new Task[0];
             int counter = 0;
 
             while (counter < items.Count)
@@ -137,10 +135,8 @@ namespace Axle.Engine
                 int k = 0;
 
                 int batchSize = stop - counter;
-                if (batchSize < maxTasks)
-                {
+                if (batchSize != tasks.Length)
                     tasks = new Task[batchSize];
-                }
 
                 for (; counter < stop; counter++)
                 {

@@ -19,6 +19,8 @@ namespace Axle
             MongoCRUD IndexCRUD = new MongoCRUD("Index");
 
             CreateHostBuilder(args).Build().Run();
+
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

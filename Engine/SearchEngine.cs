@@ -61,26 +61,37 @@ namespace Axle.Engine
 
             // fetch all relevant tokens
             var tokens = Utils.RunTasks<string, TokenModel>(terms, 2, (term) => _store.GetToken(term));
+            tokens = tokens.FindAll((token) => !(token is null));
 
             long totalDocuments = await _store.CountIndexedDocuments();
 
             // accumulate scores for relevant documents
             var scores = new Dictionary<Guid, decimal>();
+            var documentsToTokens = new Dictionary<Guid, HashSet<string>>();
+            HashSet<string> guid;
             foreach (var tokenObject in tokens)
             {
-                if (tokenObject is null) continue;
-
                 var idf = (decimal)(1 + Math.Log((double)totalDocuments / (tokenObject.ContainingDocuments.Count + 1)));
                 decimal tf;
                 foreach (var document in tokenObject.ContainingDocuments)
                 {
                     tf = scores.GetValueOrDefault(document.DocumentId, 0);
+                    guid = documentsToTokens.GetValueOrDefault(document.DocumentId, new HashSet<string>());
+                    guid.Add(tokenObject.Token);
+                    documentsToTokens[document.DocumentId] = guid;
                     scores[document.DocumentId] = tf + document.Tf * idf;
                 }
             }
 
             // abort here if we couldn't find any documents
             if (scores.Count == 0) return result;
+
+            foreach (var doc in documentsToTokens) 
+            {
+                decimal coord = (decimal)doc.Value.Count / tokens.Count;
+                // scores[doc.Key] *= coord;
+            }
+
 
             // sort the documents by scores
             var relevantDocuments = new List<Guid>(scores.Keys);
@@ -93,7 +104,8 @@ namespace Axle.Engine
             relevantDocuments = relevantDocuments.GetRange(0, Math.Min(50, relevantDocuments.Count));
 
             // fetch all relevant documents from the database
-            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 500, (guid) => _store.GetDocument(guid));
+            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 50, (guid) => _store.GetDocument(guid));
+            Console.WriteLine(String.Join(", ", documents.ConvertAll<Guid>(doc => doc.Id)));
 
             foreach (var document in documents)
             {
@@ -202,12 +214,12 @@ namespace Axle.Engine
             // merge new small index with main index
             watch.Start();
             var indexKeysList = new List<string>(index.Keys);
-            Utils.RunTasks<string>(indexKeysList, 10, (key) => _store.UpsertTokenDocuments(key, index[key], sourcePathToId));
+            Utils.RunTasks<string>(indexKeysList, 50, (key) => _store.UpsertTokenDocuments(key, index[key], sourcePathToId));
             watch.Stop();
             _logger.LogDebug($"Updated the index in {watch.ElapsedMilliseconds}ms.");
 
             // mark new documents as indexed
-            Utils.RunTasks<DocumentModel>(documents, 10, (document) => _store.MarkDocumentAsIndexed(document));
+            Utils.RunTasks<DocumentModel>(documents, 50, (document) => _store.MarkDocumentAsIndexed(document));
 
             // Add to autocomplete index
             _store.InsertOrUpdateUnigramDocuments(unigramList);
