@@ -69,6 +69,8 @@ namespace Axle.Server.Controllers
                 errors = await UploadDocuments(uploadInput, errors);
             else if (uploadType == "url")
                 errors = await UploadWebUrl(uploadInput.Link, errors);
+            else if (uploadType == "sitemap")
+                errors = await UploadSitemap(uploadInput, errors);
 
             if (errors.Count > 0)
             {
@@ -101,10 +103,10 @@ namespace Axle.Server.Controllers
                     );
 
             if (uploadType == "sitemap")
-                if (!IsValidLink(uploadInput.Link) || !IsValidDocuments(uploadInput.Documents))
+                if (!IsValidDocuments(uploadInput.Documents))
                     return createResponse(
                         "TYPE_REQUIREMENT_MISSING",
-                        "Upload type 'sitemap' requires you to set either 'documents' or 'link' field"
+                        "Upload type 'sitemap' requires you to set the 'documents' field"
                     );
 
             return null;
@@ -135,6 +137,7 @@ namespace Axle.Server.Controllers
 
         private async Task<List<UploadError>> UploadWebUrl(string link, List<UploadError> errors)
         {
+            Console.WriteLine("I have been called");
             // Get the extension of the link
             // if the link type is parsable, then you download the content and add to db
             // else you ignore it and return the unprocessable document error
@@ -160,7 +163,7 @@ namespace Axle.Server.Controllers
 
             string fileName = Utils.GenerateGUID(11) + "." + extension;
             string filePath = Path.GetFullPath("./wwwroot/uploads/" + fileName);
-            _client.DownloadFile(link, "./wwwroot/uploads/" + fileName);
+            _client.DownloadFile(new Uri(link), "./wwwroot/uploads/" + fileName);
             await _engine.AddDocument(filePath, Path.GetFileNameWithoutExtension(link), "");
 
             return errors;
@@ -210,11 +213,11 @@ namespace Axle.Server.Controllers
             var file = uploadInput.Documents[0];
             // List<string> Index(IFormFile file) => file.ReadAsStringAsync();
             List<string> urlsList = await ReadFormFileAsync(file);
+            Utils.RunTasks<string>(urlsList, 5, (url) => {
+                Console.WriteLine("Lambda to the rescue");
+                return UploadWebUrl(url, errors);
+            });
 
-            foreach (string url in urlsList)
-            {
-                errors = await UploadWebUrl(url, errors);
-            }
             return errors;
         }
 

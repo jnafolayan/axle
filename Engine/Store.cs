@@ -168,7 +168,7 @@ namespace Axle.Engine
 
         public List<BigramModel> GetTopNBigrams(string Before, int n)
         {
-            var pattern = new MongoDB.Bson.BsonRegularExpression(new Regex("^" + Before + "\\w+", RegexOptions.IgnoreCase));
+            var pattern = new MongoDB.Bson.BsonRegularExpression(new Regex("^" + Before + "\\w*", RegexOptions.IgnoreCase));
             var filter = Builders<BigramModel>.Filter.Regex("Before", pattern);
             var sort = Builders<BigramModel>.Sort.Descending("Count");
             var result = _bigrams.Find<BigramModel>(filter).Sort(sort).Limit(n).ToList();
