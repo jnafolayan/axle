@@ -58,7 +58,7 @@ export default function Admin() {
             <h3 className="text-base md:text-xl mb-2 uppercase">
               Upload Resources
             </h3>
-            <div>
+            <div className="px-4 border-l-4 border-primary-400">
               {message ? (
                 <p className="text-base text-green-500 mb-3">{message}</p>
               ) : null}
@@ -93,7 +93,7 @@ export default function Admin() {
                 />
               </div>
               {/* tab content */}
-              <div className="py-2 px-3 border">
+              <div className="py-4">
                 <form action="" method="POST" autoComplete="off">
                   {currentTab === "document" ? (
                     <DocumentUpload onSubmit={handleSubmit} />
@@ -125,7 +125,7 @@ function Tab({ label, tab, currentTab, onClick }: TTabProps) {
   return (
     <button
       className={clsx(
-        "w-36 text-center py-2 px-3 border hover:bg-primary-500 hover:text-gray-900",
+        "w-36 text-center py-2 px-3 border-b hover:bg-primary-500 hover:text-gray-900",
         {
           "bg-primary-500 text-gray-800": currentTab === tab,
         }

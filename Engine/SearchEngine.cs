@@ -93,7 +93,7 @@ namespace Axle.Engine
             relevantDocuments = relevantDocuments.GetRange(0, Math.Min(50, relevantDocuments.Count));
 
             // fetch all relevant documents from the database
-            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 500, (guid) => _store.GetDocument(guid));
+            var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 50, (guid) => _store.GetDocument(guid));
 
             foreach (var document in documents)
             {
@@ -202,12 +202,12 @@ namespace Axle.Engine
             // merge new small index with main index
             watch.Start();
             var indexKeysList = new List<string>(index.Keys);
-            Utils.RunTasks<string>(indexKeysList, 10, (key) => _store.UpsertTokenDocuments(key, index[key], sourcePathToId));
+            Utils.RunTasks<string>(indexKeysList, 50, (key) => _store.UpsertTokenDocuments(key, index[key], sourcePathToId));
             watch.Stop();
             _logger.LogDebug($"Updated the index in {watch.ElapsedMilliseconds}ms.");
 
             // mark new documents as indexed
-            Utils.RunTasks<DocumentModel>(documents, 10, (document) => _store.MarkDocumentAsIndexed(document));
+            Utils.RunTasks<DocumentModel>(documents, 50, (document) => _store.MarkDocumentAsIndexed(document));
 
             // Add to autocomplete index
             _store.InsertOrUpdateUnigramDocuments(unigramList);
