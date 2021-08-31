@@ -172,9 +172,10 @@ namespace Axle.Engine
                     TfScores = tfScores
                 };
             }
-            catch (Exception)
+            catch (Exception err)
             {
                 // completely suppress the exception hehe
+                Console.WriteLine(err.ToString());
                 return null;
             }
         }
