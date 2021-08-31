@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import Footer from "../components/Footer";
 import Search from "../components/Search";
 import ClockIcon from "../icons/ClockIcon";
@@ -18,6 +18,7 @@ export default function Home() {
   const query = useSelector(selectQuery);
   const completions = useSelector(selectCompletions);
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const onQueryChange = (event: React.ChangeEvent) => {
     const target = event.target as HTMLInputElement;
@@ -27,6 +28,7 @@ export default function Home() {
 
   const pickSuggestion = (s: string) => {
     dispatch(chooseCompletion(s));
+    history.push(`/search?q=${s}`);
   };
 
   return (
