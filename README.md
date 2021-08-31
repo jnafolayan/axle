@@ -1,7 +1,7 @@
 # Axle
 A search engine written in C#.
 
-# Contributors
+## Contributors
 - [jnafolayan](https://github.com/jnafolayan)
 - [iammadab](https://github.com/iammadab)
 - [theTrueBoolean](https://github.com/theTrueBoolean)
