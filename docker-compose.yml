@@ -3,6 +3,8 @@ version: "3.7"
 services:
   ui:
     container_name: axle-ui
+    depends_on:
+      - server
     build:
       context: ./ui
       dockerfile: Dockerfile
@@ -13,18 +15,21 @@ services:
       - 3000:3000
   server:
     container_name: axle-server
+    depends_on:
+      - db
     build:
+      context: .
       dockerfile: Dockerfile
     ports:
-      - 5000:5000
-      - 5001:5001
+      - 5000:80
     volumes:
       - ".:/app"
-  mongodb:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "SearchEngineConfig:DatabaseConnectionURI=mongodb://axle-db:27017"
+  db:
     image: mongo
-    container_name: axle-mongodb
-    volumes:
-      - /data/db:/data/db
+    container_name: axle-db
     ports:
       - 27017:27017
-    restart: unless-stopped
+    restart: always
