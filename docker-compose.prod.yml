@@ -16,7 +16,7 @@ services:
       - db
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     ports:
       - 5000:80
     environment:
@@ -25,7 +25,8 @@ services:
   db:
     image: mongo
     container_name: axle-db
-      - /data/db:/data/db
+    volumes:
+      - ./data/db:/data/db
     ports:
       - 27017:27017
     restart: unless-stopped

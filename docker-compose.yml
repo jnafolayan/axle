@@ -33,3 +33,6 @@ services:
     ports:
       - 27017:27017
     restart: always
+    volumes:
+      - "./data/db:/data/db"
+      - ".:/app"

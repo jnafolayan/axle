@@ -49,7 +49,7 @@ namespace Axle
             services.AddCronJob<IndexingCronJob>(config =>
             {
                 config.TimeZoneInfo = TimeZoneInfo.Utc;
-                config.CronExpression = @"0 */1 * * *";
+                config.CronExpression = @"*/30 * * * *"; // every 30 minutes
             });
         }
 
