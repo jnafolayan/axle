@@ -1,6 +1,8 @@
 # Axle
 A search engine written in C#.
 
+![Axle Homepage](https://user-images.githubusercontent.com/44870530/134175683-e64e5fab-befa-450a-a86e-23e221f7aecd.png)
+
 ## How to run
 ### Prerequisites
 - [.NET](https://dotnet.microsoft.com/download)
