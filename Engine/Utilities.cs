@@ -88,7 +88,7 @@ namespace Axle.Engine
         public static List<U> RunTasks<T, U>(List<T> items, int maxTasks, Func<T, Task<U>> work)
         {
             Task<U>[] tasks = new Task<U>[0];
-            var result = new List<U>(items.Count);
+            var result = new List<U>();
             int counter = 0;
 
             while (counter < items.Count)

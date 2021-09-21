@@ -137,7 +137,6 @@ namespace Axle.Server.Controllers
 
         private async Task<List<UploadError>> UploadWebUrl(string link, List<UploadError> errors)
         {
-            Console.WriteLine("I have been called");
             // Get the extension of the link
             // if the link type is parsable, then you download the content and add to db
             // else you ignore it and return the unprocessable document error
