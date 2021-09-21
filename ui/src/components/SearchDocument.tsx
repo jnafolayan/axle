@@ -13,7 +13,7 @@ export default function SearchDocument(props: TSearchDocumentProps) {
       <a
         href={api.documents.getDownloadURL(doc.link)}
         target="_blank"
-        className="text-base md:text-xl text-primary-500 hover:underline truncate w-full"
+        className="text-base block md:text-xl text-primary-500 hover:underline truncate"
       >
         {title}
       </a>

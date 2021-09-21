@@ -89,9 +89,8 @@ namespace Axle.Engine
             foreach (var doc in documentsToTokens) 
             {
                 decimal coord = (decimal)doc.Value.Count / tokens.Count;
-                // scores[doc.Key] *= coord;
+                scores[doc.Key] *= coord;
             }
-
 
             // sort the documents by scores
             var relevantDocuments = new List<Guid>(scores.Keys);
@@ -105,7 +104,8 @@ namespace Axle.Engine
 
             // fetch all relevant documents from the database
             var documents = Utils.RunTasks<Guid, DocumentModel>(relevantDocuments, 50, (guid) => _store.GetDocument(guid));
-            Console.WriteLine(String.Join(", ", documents.ConvertAll<Guid>(doc => doc.Id)));
+            // filter out the nulls
+            documents = documents.FindAll((doc) => !(doc is null));
 
             foreach (var document in documents)
             {
@@ -197,7 +197,7 @@ namespace Axle.Engine
             watch.Start();
             var buildIndexResult = _indexer.BuildIndex(documentURLs);
             watch.Stop();
-            _logger.LogDebug($"Built new index in {watch.ElapsedMilliseconds}ms ({documents.Count} documents).");
+            _logger.LogInformation($"Built new index in {watch.ElapsedMilliseconds}ms ({documents.Count} documents).");
 
             var index = buildIndexResult.TokenMap;
             var bigramList = buildIndexResult.Bigrams;
