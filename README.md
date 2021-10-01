@@ -33,6 +33,10 @@ docker-compose -f docker-compose.yml up
 The frontend can viewed at [http://localhost:3000](http://localhost:3000). To upload documents, visit [http://localhost:3000/admin](http://localhost:3000/admin). 
 
 Indexing is scheduled to run every 30 minutes but can be triggered manually. To trigger it manually, visit [http://localhost:5000/indexdocument](http://localhost:5000/indexdocument).
+Alternatively, run the following script from the terminal
+```bash
+./scripts.sh index-documents
+```
 
 ## Contributors
 - [jnafolayan](https://github.com/jnafolayan)
